@@ -76,7 +76,7 @@ int yydebug=1;
 
 programa : PRINCIPAL bloque ;
 
-bloque : INICIOBLOQUE declar_variables_locales declar_subprogs sentencias FINBLOQUE ;
+bloque : INICIOBLOQUE {tsInsertaMarca();} declar_variables_locales declar_subprogs sentencias FINBLOQUE ;
 
 declar_subprogs : declar_subprogs declar_subprog | ;
 
@@ -90,9 +90,9 @@ variables_locales : variables_locales cuerpo_declar_variables
 cuerpo_declar_variables : TIPOBASICO lista_variables PUNTOYCOMA 
 	| error;
 
-lista_variables : variable COMA lista_variables
-	| variable error lista_variables
-	| variable ;
+lista_variables : variable {tsInsertaIdent($1)} COMA lista_variables
+	| variable {tsInsertaIdent($1)} error lista_variables
+	| variable {tsInsertaIdent($1)} ;
 
 variable : IDENT declar_matriz
 	| IDENT ;

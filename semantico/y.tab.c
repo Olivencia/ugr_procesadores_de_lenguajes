@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.0.2.  */
+/* A Bison parser, made by GNU Bison 3.0.4.  */
 
 /* Bison implementation for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "3.0.2"
+#define YYBISON_VERSION "3.0.4"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -64,33 +64,36 @@
 /* Copy the first part of user declarations.  */
 #line 1 "sintactico.y" /* yacc.c:339  */
 
-/*********************************************************
+/********************************************************
 **
 ** Fichero: PRUEBA.Y
 ** Función: Pruebas de YACC para practicas de PL
 **
 ********************************************************/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-/** La siguiente declaracion permite que ’yyerror’ se pueda invocar desde el
-*** fuente de lex (prueba.l)
-**/
-void yyerror( char * msg ) ;
-/** La siguiente variable se usará para conocer el numero de la línea
-*** que se esta leyendo en cada momento. También es posible usar la variable
-*** ’yylineno’ que también nos muestra la línea actual. Para ello es necesario
-*** invocar a flex con la opción ’-l’ (compatibilidad con lex).
-**/
-//#define YYDEBUG 1
-//#define YYERROR_VERBOSE
+#include "tablaSimbolos.h"
+
+/* 
+** La siguiente declaracion permite que ’yyerror’ se pueda invocar desde el
+** fuente de lex (prueba.l)
+*/
+void yyerror(char * msg);
+
+/* 
+** La siguiente variable se usará para conocer el numero de la línea
+** que se esta leyendo en cada momento. También es posible usar la variable
+** ’yylineno’ que también nos muestra la línea actual. Para ello es necesario
+** invocar a flex con la opción ’-l’ (compatibilidad con lex).
+*/
 int linea_actual = 1 ;
 int yydebug=1;
 
 
 
-
-#line 94 "y.tab.c" /* yacc.c:339  */
+#line 97 "y.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -174,7 +177,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 178 "y.tab.c" /* yacc.c:358  */
+#line 181 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -475,16 +478,16 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    74,    74,    76,    83,    83,    85,    87,    87,    89,
-      90,    92,    93,    95,    96,    97,    99,   100,   102,   103,
-     105,   107,   108,   110,   111,   112,   114,   115,   117,   118,
-     119,   120,   121,   122,   123,   124,   126,   129,   130,   132,
-     134,   136,   138,   140,   142,   143,   144,   145,   146,   147,
-     148,   149,   150,   151,   152,   153,   155,   156,   158,   159,
-     161,   161,   163,   164,   165,   166,   167,   169,   170,   172,
-     174,   175,   176,   177,   179,   181,   182,   184,   185,   187,
-     189,   190,   192,   193,   195,   197,   198,   200,   201,   203,
-     205,   206,   208,   209
+       0,    77,    77,    79,    81,    81,    83,    85,    85,    87,
+      88,    90,    91,    93,    94,    95,    97,    98,   100,   101,
+     103,   105,   106,   108,   109,   110,   112,   112,   114,   115,
+     116,   117,   118,   119,   120,   121,   123,   125,   126,   128,
+     130,   132,   134,   136,   138,   139,   140,   141,   142,   143,
+     144,   145,   146,   147,   148,   149,   151,   152,   154,   155,
+     157,   157,   159,   160,   161,   162,   163,   165,   166,   168,
+     170,   171,   172,   173,   175,   177,   178,   180,   181,   183,
+     185,   186,   188,   189,   191,   193,   194,   196,   197,   199,
+     201,   202,   204,   205
 };
 #endif
 
@@ -1383,7 +1386,7 @@ yyreduce:
   switch (yyn)
     {
       
-#line 1387 "y.tab.c" /* yacc.c:1646  */
+#line 1390 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1611,11 +1614,11 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 211 "sintactico.y" /* yacc.c:1906  */
+#line 207 "sintactico.y" /* yacc.c:1906  */
 
 
 
-/** aqui incluimos el fichero generado por el ’lex’
+/** Aqui incluimos el fichero generado por el ’lex’
 *** que implementa la función ’yylex’
 **/
 #ifdef DOSWINDOWS /* Variable de entorno que indica la plataforma */
@@ -1623,10 +1626,10 @@ yyreturn:
 #else
 #include "lex.yy.c"
 #endif
-/** se debe implementar la función yyerror. En este caso
+/** Se debe implementar la función yyerror. En este caso
 *** simplemente escribimos el mensaje de error en pantalla
 **/
-void yyerror( char *msg )
+void yyerror(char *msg)
 {
-	fprintf(stderr,"[Linea %d]:%s\n", linea_actual, msg) ;
+	fprintf(stderr,"[Linea %d]:%s\n", linea_actual, msg);
 }

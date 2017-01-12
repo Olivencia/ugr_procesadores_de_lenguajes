@@ -6,186 +6,194 @@
 
 typedef enum {
 	MARCA = 0, 
-	PROC,
+	FUNCION, 
 	VARIABLE, 
-	PAR_FORMAL, 
-	DESC_CTRL,
-	FUNCION,
-	RANGO
+	PAR_FORMAL
 } tEntrada;
 
 typedef enum {
-	NO_ASIG = 0, //NO ASIGNADO (PARA CUANDO AUN NO HEMOS DECLARADO EL TIPO DE LA VARIABLE)
-	DESC, //DESCONOCIDO O ERRONEO
-	ENTERO,
+	ENTERO, 
 	REAL, 
-	BOOLEANO, 
 	CARACTER, 
+	BOOLEANO, 
 	STRING, 
-	MATRIZ
+	MATRIZ, 
+	DESC, //DESCONOCIDO O ERRONEO
+	NO_ASIG = 0 //NO ASIGNADO (PARA CUANDO AUN NO HEMOS DECLARADO EL TIPO DE LA VARIABLE)
 } tDato;
 
-//ES FUERTEMENTE TIPIFICADO
-typedef union valor {
-	int entero; 
-	float real; 
-	unsigned char booleano; 
-	char caracter;
-} tValor;
-
-typedef struct entradaTS {
+typedef struct {
+	tEntrada entrada; //TIPO DE ENTRADA
 	char *lexema;
-	tEntrada tipoTS; //TIPO DE ENTRADA
 	tDato tipoDato; //TIPO DE DATO
-	int nParam; //NUMERO DE PARAMETROS FORMALES, SI ES PROC
-	tValor valor; //VALOR DEL TOKEN
+	int nParam; //NUMERO DE PARAMETROS
 	
 	//DIMENSIONES DE LA MATRIZ
-	int numDim;
+	unsigned int numDim;
 	int tamDim1;
 	int tamDim2;
-	
-	//LOCALIZACION EN EL CODIGO FUENTE
-	
-	//NUEVOS CAMPOS
-	
-	//CAMPOS PARA LA GENERACION DE CODIGO...(NO LO PONEMOS AUN)
-} tsEntrada; 
+} entradaTS;
 
-#define YYSTYPE tsEntrada
+typedef struct {
+	int atrib;
+	char *lexema;
+	tDato tipo;
+} atributos;
+
+#define YYSTYPE atributos
 #define MAX_ENTRADAS 500
-extern tsEntrada TS[MAX_ENTRADAS];
+
 extern long int TOPE;
-extern tDato globalTipo;		// Variable global para almacenar el tipo en las declaraciones
 extern int subProg;					// Variable que indica el comienzo de una declaracion de un subprograma o funcion
-extern int topeSubprog;			// Sirve para indicar en que indice se encuentra la entrada de subprograma para cuando se inserten las entradas de los parametros
-extern int lineaActual;			// Variable que almacena la linea actual por la cual se va analizando
+
+
+extern entradaTS ts[MAX_ENTRADAS];
+extern unsigned char declarVar; 	//0 si estamos declarando 1 si estamos utilizando la variable
+
+
+//A partir de aqui las que necesitemos
+extern tDato globalTipo;			// Variable global para almacenar el tipo en las declaraciones
+extern int topeSubprog;				// Sirve para indicar en que indice se encuentra la entrada de subprograma para cuando se inserten las entradas de los parametros
+extern int lineaActual;				// Variable que almacena la linea actual por la cual se va analizando
 extern int funcionActual;			// Variable que almacena el indice de la entrada de la TS de la funcion que se esta analizando para realizar la comprobacion de tipos a sus parametros
 extern int contadorParam;			// Contador que sirve para llevar la cuenta de que parametro estamos analizando
 extern int pilaPun[MAX_ENTRADAS];
 extern int topeFun;
 extern int pilaCont[MAX_ENTRADAS];
 extern int topeCont;
-extern unsigned char declarVar; //0 si estamos declarando 1 si estamos utilizando la variable
 
 
 
-//------------  Funciones adicionales  ----------------------------------------------
+
 /**
- * Ajusta la variable global_tipo segun se cambie el tipo en las declaraciones de variables
+ * Ajusta la variable tipoGlobal segun se cambie el tipo en las declaraciones de variables
  */
-void ajustaTipo(tsEntrada e);
+void ajustaTipo(entradaTS e);
 
 /**
  * Inserta un nuevo identificador en la tabla de simbolos
  */
-void TS_InsertaIDENT(tsEntrada e, int numDim, int tamDim1, int tamDim2);
+void tsInsertaIdent(entradaTS e, int numDim, int tamDim1, int tamDim2);
 
 /**
  * Inserta una marca de comienzo de un bloque
  */
-void TS_InsertaMARCA();
+void tsInsertaMarca();
 
 /**
  * Inserta una entrada de subprograma en la tabla de simbolos
- */
-void TS_InsertaSUBPROG(tsEntrada ident, tsEntrada tipoRetorno);
+*/
+void tsInsertaSubprog(entradaTS ident, entradaTS tipoRetorno);
 
 /**
  * Inserta una entrada de parametro formal de un subprograma en la tabla de simbolos
  */
-void TS_InsertaPARAMF(tsEntrada e);
+void tsInsertaParamFormal(entradaTS e);
 
 /**
  * Indica si el atributo es un array o no
  */
-int esArray(tsEntrada e);
+int esArray(entradaTS e);
 
 /**
- * Indica que si siendo arrays los dos tsEntrada tienen el mismo tamanyo.
+ * Indica que si siendo arrays los dos entradaTS tienen el mismo tamanyo.
  */
-int igualTam(tsEntrada e1, tsEntrada e2);
+int igualTam(entradaTS e1, entradaTS e2);
+
+/**
+ * Comprueba que no se supera el limite de elementos y lo incrementa en 1
+*/
+void incrementaTope();
+
+/**
+ * Decrementa el tope de la pila en 1
+*/
+void decrementaTope();
+
+
 
 //------------  Funciones para las comprobaciones semanticas ------------------------
 /**
  * Busca la entrada de tipo Funcion mas proxima desde el tope de la tabla de simbolos
  * y devuelve el indice
  */
-int TS_BuscarFuncionProxima();
+int tsBuscarFuncionProxima();
 
 /**
  * Comprobacion semantica de la sentencia de retorno.
  * Comprueba que el tipo de expresion es el mismo que el de la funcion
  * donde se encuentra
  */
-void TS_CompruebaSENTRETORNO(tsEntrada expresion, tsEntrada* retorno);
+void tsCompruebaRetorno(entradaTS expresion, entradaTS* retorno);
 
 /**
  * Busca el identificador en la tabla de simbolos y lo rellena en el atributo de salida
  */
-void TS_GetIDENT(tsEntrada identificador, tsEntrada* res);
+void tsGetIdent(entradaTS identificador, entradaTS* res);
 
 /**
  * Comprobacion semantica de la operacion NOT
  */
-void TS_OPNOT(tsEntrada operador, tsEntrada o, tsEntrada* res);
+void tsOpNot(entradaTS operador, entradaTS o, entradaTS* res);
 
 /**
  * Comprobacion semantica de los operadores unarios + y -
  */
-void TS_OPSUMARESunario(tsEntrada operador, tsEntrada o, tsEntrada* res);
+void tsOpSumResUnario(entradaTS operador, entradaTS o, entradaTS* res);
 
 /**
  * Comprobacion semantica de las operaciones * y /
  */
-void TS_OPMULDIV(tsEntrada o1, tsEntrada operador, tsEntrada o2, tsEntrada* res);
+void tsOpMulDiv(entradaTS o1, entradaTS operador, entradaTS o2, entradaTS* res);
 
 /**
  * Comprobacion semantica de las operaciones || y XOR
  */
-void TS_OPOR(tsEntrada o1, tsEntrada operador, tsEntrada o2, tsEntrada* res);
+void tsOpOrXor(entradaTS o1, entradaTS operador, entradaTS o2, entradaTS* res);
 
 /**
  * Comprobacion semantica de la operacion **
  */
-void TS_OPPOT(tsEntrada o1, tsEntrada operador, tsEntrada o2, tsEntrada* res);
+void tsOpPot(entradaTS o1, entradaTS operador, entradaTS o2, entradaTS* res);
 
 /**
  * Comprobacion semantica de las operaciones <, >, <= y >=
  */
-void TS_OPREL(tsEntrada o1, tsEntrada operador, tsEntrada o2, tsEntrada* res);
+void tsOpRel(entradaTS o1, entradaTS operador, entradaTS o2, entradaTS* res);
 
 /**
  * Comprobacion semantica de las operaciones == y !=
  */
-void TS_OPIGUAL(tsEntrada o1, tsEntrada operador, tsEntrada o2, tsEntrada* res);
+void tsOpIgual(entradaTS o1, entradaTS operador, entradaTS o2, entradaTS* res);
 
 /**
  * Comprobacion semantica de las operaciones &&
  */
-void TS_OPAND(tsEntrada o1, tsEntrada operador, tsEntrada o2, tsEntrada* res);
+void tsOpAnd(entradaTS o1, entradaTS operador, entradaTS o2, entradaTS* res);
 
 /**
  * Comprobacion semantica de las operaciones binarias + y -
  */
-void TS_OPSUMRES(tsEntrada o1, tsEntrada operador, tsEntrada o2, tsEntrada* res);
+void tsOpSumRes(entradaTS o1, entradaTS operador, entradaTS o2, entradaTS* res);
 
 /**
  * Comprobacion semantica de la llamada a subprograma
  */
-void TS_LlamadaFuncion(tsEntrada identificador, tsEntrada* res);
+void tsLlamadaFuncion(entradaTS identificador, entradaTS* res);
 
 /**
  * Comprobacion semantica de cada parametro en una llamada a una funcion
  */
-void TS_CompruebaParametro(tsEntrada parametro);
+void tsCompruebaParametro(entradaTS parametro);
+
+
 
 
 //------------  Funciones de manejo de la Tabla de Simbolos  ------------------------
 /**
   * Anyade una entrada a la tabla de simbolos 
 **/
-void anyadir_entrada(tEntrada tipoEntrada, char* nombre,  tDato tipoDato, int Parametros, int numDim, int tamDim1, int tamDim2);
+void tsAddEntrada(tEntrada tipoEntrada, char* nombre,  tDato tipoDato, int Parametros, int numDim, int tamDim1, int tamDim2);
 
 /**
   * Quita todas las entradas hasta que encuentre una entrada especial de marca
@@ -197,7 +205,7 @@ void quitarBloqueCompleto();
   * Si la encuentra devuelve el indice donde se encuentra la entrada
   * Si no la encuentra devuelve -1
 **/
-int buscarEntrada (char* nombre/*<--creo que esto no hace falta*/, tsEntrada* entrada);
+int buscarEntrada (char* nombre/*<--creo que esto no hace falta*/, entradaTS* entrada);
 
 
 
@@ -207,7 +215,7 @@ int buscarEntrada (char* nombre/*<--creo que esto no hace falta*/, tsEntrada* en
 /**
  * Imprime como una cadena de caracteres una entrada de la tabla de simbolos dada
  */
-void imprimirEntrada(tsEntrada* e);
+void imprimirEntrada(entradaTS* e);
 
 /**
   * Imprime como cadena el tipo de entrada dado
@@ -227,6 +235,6 @@ void imprimeTS(char* mensaje);
 /**
  * Imprime por pantalla la informacion asociada al atributo
  */
-void imprimeAtributo(tsEntrada e);
+void imprimeAtributo(entradaTS e);
 
 #endif

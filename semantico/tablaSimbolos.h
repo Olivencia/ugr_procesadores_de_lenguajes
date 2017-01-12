@@ -73,7 +73,7 @@ void ajustaTipo(entradaTS e);
 /**
  * Inserta un nuevo identificador en la tabla de simbolos
  */
-void tsInsertaIdent(entradaTS e, int numDim, int tamDim1, int tamDim2);
+void tsInsertaIdent(entradaTS elem);
 
 /**
  * Inserta una marca de comienzo de un bloque

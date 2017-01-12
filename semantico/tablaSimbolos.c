@@ -29,12 +29,55 @@ void ajustaTipo(entradaTS e);
 /**
  * Inserta un nuevo identificador en la tabla de simbolos
  */
-void tsInsertaIdent(entradaTS e, int numDim, int tamDim1, int tamDim2);
+void tsInsertaIdent(entradaTS elem){
+	//Se comprueba que no hemos llegado al tope de la pila y que el identificador no existe
+	int j = TOPE-1;
+	int encontrado = 0;
+   
+	if(TOPE >= 0) {
+		//Se busca la marca de comienzo de bloue
+		while((TS[j].entrada != MARCA) && (j >= 0) && !encontrado) {
+			if() {
+				encontrado = 1
+				printf("Error en la linea %d. Identificador duplicado: %s\n", lineaActual);
+			}
+			else {
+				j--;
+	 		}
+		}
+
+		//Si no hemos encontrado el identificador lo insertamos en la TS
+		if(!encontrado) {
+			tsAddEntrada(elem);
+		}
+	}
+};
 
 /**
  * Inserta una marca de comienzo de un bloque
  */
-void tsInsertaMarca();
+void tsInsertaMarca(){
+	anyadir_entrada(Marca,"",Desconocido,0,0,0,0);
+	if(subProg==1){
+		//printf("Marca: subpro==1\n);
+		int i=TOPE;
+		int encontrada_marca=0;
+		int encontrada_funcion=0;
+		while(i>0 && TS[i].tipoEntrada==Marca){
+			if(!encontrada_marca && TS[i].tipoEntrada==Marca){
+				encontrada_marca==1;
+			}
+			if(TS[i].tipoEntrada==Funcion){
+				encontrada_funcion==1;
+			}
+			if(encontrada_marca && TS[i].tipoEntrada==Parametro_formal){
+				anyadir_entrada(Variable,strdup(TS[i].nombre);TS[i].tipoDato,TS[i].Parametros,TS[i].NumeroDimensiones,TS[i].tamanyoDimi,TS[i].tamanyoDim2);
+			}
+			i--;
+		}
+	}
+}
+};
 
 /**
  * Inserta una entrada de subprograma en la tabla de simbolos
@@ -158,7 +201,16 @@ void tsCompruebaParametro(entradaTS parametro);
 /**
   * Anyade una entrada a la tabla de simbolos 
 **/
-void tsAddEntrada(tEntrada tipoEntrada, char* nombre,  tDato tipoDato, int Parametros, int numDim, int tamDim1, int tamDim2);
+void tsAddEntrada(entradaTS ent){
+	TS[TOPE].entrada=ent.entrada;
+	TS[TOPE].lexema=ent.lexema;
+	TS[TOPE].tipoDato=ent.tipoDato;
+	TS[TOPE].nParam=ent.nParam;
+	TS[TOPE].numDim=ent.numDim;
+	TS[TOPE].tamDim1=ent.tamDim1;
+	TS[TOPE].tamDim2=ent.tamDim2;
+	incrementaTope();
+};
 
 /**
   * Quita todas las entradas hasta que encuentre una entrada especial de marca

@@ -127,7 +127,7 @@ int tsBuscarEntrada(char* nombre) {
 	if(encontrado) {
 		return i;
 	} else {
-		printf("ERROR: NO SE HA ENCONTRADO LA ENTRADA: %s", nombre);
+		//printf("ERROR: NO SE HA ENCONTRADO LA ENTRADA: %s", nombre);
 		return -1;
 	}
 }
@@ -144,7 +144,7 @@ void tsInsertaIdent(atributos elem){
 	int j = TOPE-1;
 	int encontrado = 0;
    
-	if(TOPE >= 0 && declarVar == 0) {
+	if(TOPE >= 0 && declarVar == 1) {
 		//Se busca la marca de comienzo de bloue
 		while((TS[j].entrada != MARCA) && (j >= 0) && !encontrado) {
 			if(strcmp(TS[j].lexema, elem.lexema) != 0) {
@@ -183,27 +183,28 @@ void tsInsertaMarca(){
 	
 	//AQUI SE HACE ALGO QUE AUN NO ENTIENDO EN REFERENCIA A LA 
 	//DEFINICION DE FUNCIONES QUE HAY QUE REPASAR
-	/*
-	if(subProg==1){
-		//printf("Marca: subpro==1\n);
-		int i=TOPE;
-		int encontrada_marca=0;
-		int encontrada_funcion=0;
-		
-		while(i>0 && TS[i].tipoEntrada==Marca){
-			if(!encontrada_marca && TS[i].tipoEntrada==Marca){
-				encontrada_marca==1;
+	//HOLA JAVI :)
+	
+	if(subProg == 1){
+		int j = TOPE - 2, marca = 0, funcion = 0;
+		printf("Indice j: %d\n", j);
+		while(j > 0 && TS[j].entrada != MARCA){
+			imprimirEntrada(j);
+			if(TS[j].entrada == PAR_FORMAL) {
+				entradaTS nuevaEntrada;
+				nuevaEntrada.entrada = TS[j].entrada;
+				nuevaEntrada.lexema = TS[j].lexema;
+				nuevaEntrada.tipoDato = VARIABLE;
+				nuevaEntrada.nParam = TS[j].nParam;
+				nuevaEntrada.numDim = TS[j].numDim;
+				nuevaEntrada.tamDim1 = TS[j].tamDim1;
+				nuevaEntrada.tamDim2 = TS[j].tamDim2;
+				tsAddEntrada(nuevaEntrada);
 			}
-			if(TS[i].tipoEntrada==Funcion){
-				encontrada_funcion==1;
-			}
-			if(encontrada_marca && TS[i].tipoEntrada==Parametro_formal){
-				anyadir_entrada(Variable,strdup(TS[i].nombre);TS[i].tipoDato,TS[i].Parametros,TS[i].NumeroDimensiones,TS[i].tamanyoDimi,TS[i].tamanyoDim2);
-			}
-			i--;
+			j--;
 		}
 	}
-	*/
+	
 }
 
 /**
@@ -224,17 +225,35 @@ void tsInsertaSubprog(atributos elem) {
  * Inserta una entrada de parametro formal de un subprograma en la tabla de simbolos
  */
 void tsInsertaParamFormal(atributos elem) {
-	//
-	int j = TOPE-1;
+	int j = TOPE - 1, encontrado = 0;
 
-	entradaTS nuevaEntrada;
-	nuevaEntrada.entrada = PAR_FORMAL;
-	nuevaEntrada.lexema = elem.lexema;
-	//Asignamos el tipo desde la variable global
-	nuevaEntrada.tipoDato = tipoGlobal;
-	nuevaEntrada.nParam = 0;
-	tsAddEntrada(nuevaEntrada);
+	while((j != funcionActual)  && (!encontrado) ) {
+		if(strcmp(TS[j].lexema, elem.lexema) != 0) {
+			j--;
+		}
+		else {
+			encontrado = 1;
+			printf("Error en la linea %d. Parametro duplicado: %s\n", lineaActual, elem.lexema);
+ 		}
+	}
+	if(!encontrado) {
+		entradaTS nuevaEntrada;
+		nuevaEntrada.entrada = PAR_FORMAL;
+		nuevaEntrada.lexema = elem.lexema;
+		//Asignamos el tipo desde la variable global
+		nuevaEntrada.tipoDato = tipoGlobal;
+		nuevaEntrada.nParam = 0;
+		numParam++;
+		tsAddEntrada(nuevaEntrada);
+	}
 	
+}
+
+/**
+ * Actualiza el numero de parametros de la funcion que estamos declarando
+ */
+void tsActualizaNparam() {
+	TS[funcionActual].nParam = numParam;
 }
 
 
@@ -341,7 +360,21 @@ void imprimeTipoDato(tDato tipo);
 /**
  * Imprime por pantalla la tabla de simbolos a continuacion del mensaje dado
  */
-void imprimeTS(char* mensaje);
+void imprimeTS() { 
+	int j = 0; 
+	printf("--------------------------------\n"); 
+	while(j <= TOPE) { 
+		printf("--------------------------------\n"); 
+		printf("----ELEMENTO %d-----------------\n", j); 
+		printf("-Entrada: %d-----------------\n", TS[j].entrada); 
+		printf("-Lexema: %s-----------------\n", TS[j].lexema); 
+		printf("-tipoDato: %d-----------------\n", TS[j].tipoDato); 
+		printf("-nParam: %d-----------------\n", TS[j].nParam); 
+		printf("--------------------------------\n"); 
+		j++;
+	} 
+	printf("--------------------------------\n"); 
+}
 
 /**
  * Imprime por pantalla un atributo dado

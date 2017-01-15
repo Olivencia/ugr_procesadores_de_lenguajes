@@ -86,26 +86,27 @@ lista_variables : variable COMA lista_variables
 
 variable : IDENT { 
 		if(declarVar == 1) { tsInsertaIdent($1); }
-		else if(declarPar == 1) { numParam++; tsInsertaParamFormal($1); }
 		else { tsBuscarIdent($1); } 
 	} declar_matriz 
 	| IDENT { 
 		if(declarVar == 1) { tsInsertaIdent($1); }
-		else if(declarPar == 1) { numParam++; tsInsertaParamFormal($1); }
 		else { tsBuscarIdent($1); }  
 	} ;
 
 declar_matriz : CORIZQ CONSTENTERA CORDER
 	| CORIZQ CONSTENTERA COMA CONSTENTERA CORDER ;
 
-cabecera_subprograma : tipo_retorno IDENT { declarPar = 1; tsInsertaSubprog($1); } PARIZQ lista_parametros PARDER  { numParam = 0; declarPar = 0; };
+cabecera_subprograma : tipo_retorno IDENT { declarPar = 1; tsInsertaSubprog($1); } PARIZQ lista_parametros PARDER  { tsActualizaNparam(); numParam = 0; declarPar = 0; };
 
 tipo_retorno : TIPOBASICO declar_matriz
-	| TIPOBASICO ;
+	| TIPOBASICO { imprimeTS(); };
 
-lista_parametros : TIPOBASICO { asignaTipoGlobal($1); } variable COMA lista_parametros
-	| TIPOBASICO { asignaTipoGlobal($1); } variable error COMA lista_parametros
-	| TIPOBASICO { asignaTipoGlobal($1); } variable ;
+lista_parametros : parametro COMA lista_parametros
+	| parametro error COMA lista_parametros
+	| parametro ;
+
+parametro : TIPOBASICO IDENT { numParam++; asignaTipoGlobal($1); tsInsertaParamFormal($2); } declar_matriz 
+	| TIPOBASICO IDENT { numParam++; asignaTipoGlobal($1); tsInsertaParamFormal($2); } ;
 
 sentencias : sentencia sentencias | ;
 

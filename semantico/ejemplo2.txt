@@ -2,9 +2,8 @@ principal
 {
 
 	var
-		entero ve, pepe, manolo, x;
+		entero ve, pepe, manolo, x, a;
 		real v9, pepita, wete;
-
 	finvar
 	
 	entero suma(caracter a, logico b) {

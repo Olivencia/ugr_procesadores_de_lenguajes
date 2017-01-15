@@ -46,7 +46,7 @@ extern long int TOPE;
 extern entradaTS ts[MAX_ENTRADAS];
 // Variable que almacena la linea actual por la cual se va analizando	
 extern int lineaActual;
-//0 si estamos declarando 1 si estamos utilizando la variable
+//1 si estamos declarando 0 si estamos utilizando la variable
 extern int declarVar;
 // Variable que indica el comienzo de una declaracion de un subprograma o funcion
 // 1 si estoy en cabec_subprog 0 si estoy en bloque
@@ -143,6 +143,11 @@ void tsInsertaSubprog(atributos elem);
  * Inserta una entrada de parametro formal de un subprograma en la tabla de simbolos
  */
 void tsInsertaParamFormal(atributos elem);
+
+/**
+ * Actualiza el numero de parametros de la funcion que estamos declarando
+ */
+void tsActualizaNparam();
 
 
 
@@ -244,7 +249,7 @@ void imprimeTipoDato(tDato tipo);
 /**
  * Imprime por pantalla la tabla de simbolos a continuacion del mensaje dado
  */
-void imprimeTS(char* mensaje);
+void imprimeTS();
 
 /**
  * Imprime por pantalla un atributo dado

@@ -2,10 +2,20 @@ principal
 {
 
 	var
-		entero ve, pepe, manolo, manolo;
-		real v9[9], pepita, wete;
+		entero ve, pepe, manolo, x;
+		real v9, pepita, wete;
 
 	finvar
+	
+	entero suma(caracter a, logico b) {
+		var
+			entero c;
+		finvar
+
+		c = a+b;
+
+		devolver c;
+	}
 	x=3*2;
 
 	si (x>3) {

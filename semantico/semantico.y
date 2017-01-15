@@ -10,7 +10,7 @@
 ** La siguiente declaracion permite que ’yyerror’ se pueda invocar desde el
 ** fuente de lex (prueba.l)
 */
-void yyerror(char * msg);
+void yyerror(const char* msg);
 
 /* 
 ** La siguiente variable se usará para conocer el numero de la línea
@@ -18,7 +18,6 @@ void yyerror(char * msg);
 ** ’yylineno’ que también nos muestra la línea actual. Para ello es necesario
 ** invocar a flex con la opción ’-l’ (compatibilidad con lex).
 */
-int linea_actual = 1 ;
 int yydebug=1;
 
 
@@ -73,32 +72,40 @@ declar_subprogs : declar_subprogs declar_subprog | ;
 
 declar_subprog : cabecera_subprograma { subProg = 1; } bloque { subProg = 0; } ;
 
-declar_variables_locales : VAR { declarVar = 0; } variables_locales FINVAR { declarVar = 1; } | ;
+declar_variables_locales : VAR { declarVar = 1; } variables_locales FINVAR { declarVar = 0; } | ;
 
 variables_locales : variables_locales cuerpo_declar_variables
 	| cuerpo_declar_variables  ;
 
-cuerpo_declar_variables : TIPOBASICO lista_variables PUNTOYCOMA 
+cuerpo_declar_variables : TIPOBASICO { asignaTipoGlobal($1); } lista_variables PUNTOYCOMA 
 	| error ;
 
 lista_variables : variable COMA lista_variables
 	| variable error lista_variables
 	| variable ;
 
-variable : IDENT { if(declarVar == 0) { tsInsertaIdent($1); }else { tsBuscarIdent($1.lexema); } } declar_matriz 
-	| IDENT { if(declarVar == 0) { tsInsertaIdent($1); }else { tsBuscarIdent($1.lexema); } } ;
+variable : IDENT { 
+		if(declarVar == 1) { tsInsertaIdent($1); }
+		else if(declarPar == 1) { numParam++; tsInsertaParamFormal($1); }
+		else { tsBuscarIdent($1); } 
+	} declar_matriz 
+	| IDENT { 
+		if(declarVar == 1) { tsInsertaIdent($1); }
+		else if(declarPar == 1) { numParam++; tsInsertaParamFormal($1); }
+		else { tsBuscarIdent($1); }  
+	} ;
 
 declar_matriz : CORIZQ CONSTENTERA CORDER
 	| CORIZQ CONSTENTERA COMA CONSTENTERA CORDER ;
 
-cabecera_subprograma : tipo_retorno IDENT PARIZQ lista_parametros PARDER { tsInsertaSubprog($1); } ;
+cabecera_subprograma : tipo_retorno IDENT { declarPar = 1; tsInsertaSubprog($1); } PARIZQ lista_parametros PARDER  { numParam = 0; declarPar = 0; };
 
 tipo_retorno : TIPOBASICO declar_matriz
 	| TIPOBASICO ;
 
-lista_parametros : TIPOBASICO variable COMA lista_parametros
-	| TIPOBASICO variable error lista_parametros
-	| TIPOBASICO variable ;
+lista_parametros : TIPOBASICO { asignaTipoGlobal($1); } variable COMA lista_parametros
+	| TIPOBASICO { asignaTipoGlobal($1); } variable error COMA lista_parametros
+	| TIPOBASICO { asignaTipoGlobal($1); } variable ;
 
 sentencias : sentencia sentencias | ;
 
@@ -209,7 +216,7 @@ lista_caracter : lista_caracter COMA CONSTCARACTER
 /** Se debe implementar la función yyerror. En este caso
 *** simplemente escribimos el mensaje de error en pantalla
 **/
-void yyerror(char *msg)
+void yyerror(const char* msg)
 {
-	fprintf(stderr,"[Linea %d]:%s\n", linea_actual, msg);
+	fprintf(stderr,"[Linea %d]:%s\n", lineaActual, msg);
 }

@@ -955,22 +955,22 @@ YY_RULE_SETUP
 case 15:
 YY_RULE_SETUP
 #line 28 "lexico.l"
-{ ; return(TIPOBASICO); }
+{ ; yylval.tipo = ENTERO; return(TIPOBASICO); }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
 #line 29 "lexico.l"
-{ ; return(TIPOBASICO); }
+{ ; yylval.tipo = REAL; return(TIPOBASICO); }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
 #line 30 "lexico.l"
-{ ; return(TIPOBASICO); }
+{ ; yylval.tipo = CARACTER; return(TIPOBASICO); }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
 #line 31 "lexico.l"
-{ ; return(TIPOBASICO); }
+{ ; yylval.tipo = BOOLEANO; return(TIPOBASICO); }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
@@ -1118,7 +1118,7 @@ case 47:
 /* rule 47 can match eol */
 YY_RULE_SETUP
 #line 61 "lexico.l"
-{ ++linea_actual; }
+{ ++lineaActual; }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP

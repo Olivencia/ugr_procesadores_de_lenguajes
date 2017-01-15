@@ -10,14 +10,14 @@ typedef enum {
 } tEntrada;
 
 typedef enum {
+	NO_ASIG = 0, //NO ASIGNADO (PARA CUANDO AUN NO HEMOS DECLARADO EL TIPO DE LA VARIABLE)
 	ENTERO, 
 	REAL, 
 	CARACTER, 
 	BOOLEANO, 
 	STRING, 
 	MATRIZ, 
-	DESC, //DESCONOCIDO O ERRONEO
-	NO_ASIG = 0 //NO ASIGNADO (PARA CUANDO AUN NO HEMOS DECLARADO EL TIPO DE LA VARIABLE)
+	DESC //DESCONOCIDO O ERRONEO
 } tDato;
 
 typedef struct {
@@ -44,38 +44,85 @@ typedef struct {
 extern long int TOPE;
 
 extern entradaTS ts[MAX_ENTRADAS];
+// Variable que almacena la linea actual por la cual se va analizando	
+extern int lineaActual;
 //0 si estamos declarando 1 si estamos utilizando la variable
 extern int declarVar;
 // Variable que indica el comienzo de una declaracion de un subprograma o funcion
 // 1 si estoy en cabec_subprog 0 si estoy en bloque
 extern int subProg;
-
-
-//A partir de aqui las que necesitemos
+//Variable que indica si se estan declarando parametros formales dentro
+//de la definicion de una funcion
+extern int declarPar;
 // Variable global para almacenar el tipo en las declaraciones
-extern tDato globalTipo;
+extern tDato tipoGlobal;
+//Variable que cuenta el numero de parametros formales de una funcion
+extern int numParam;
+// Almacena el indice de la TS de la funcion que se esta analizando
+extern int funcionActual;
+
+
+/*
+---A partir de aqui las que necesitemos
 // Sirve para indicar en que indice se encuentra la entrada de subprograma para cuando se 
 // inserten las entradas de los parametros
 extern int topeSubprog;
-// Variable que almacena la linea actual por la cual se va analizando	
-extern int lineaActual;	
-// Variable que almacena el indice de la entrada de la TS de la funcion que se esta 
-// analizando para realizar la comprobacion de tipos a sus parametros			
-extern int funcionActual;
 // Contador que sirve para llevar la cuenta de que parametro estamos analizando
 extern int contadorParam;
 extern int pilaPun[MAX_ENTRADAS];
 extern int topeFun;
 extern int pilaCont[MAX_ENTRADAS];
 extern int topeCont;
+*/
 
 
 
 
 /**
- * Ajusta la variable tipoGlobal segun se cambie el tipo en las declaraciones de variables
+ * Indica si el atributo es un array o no
  */
-void ajustaTipo(atributos elem);
+int esArray(entradaTS e);
+
+/**
+ * Indica que si siendo arrays los dos entradaTS tienen el mismo tamanyo.
+ */
+int igualTam(entradaTS e1, entradaTS e2);
+
+/**
+ * Almacena en la variable global tipo el tipo de la variable
+ */
+int asignaTipoGlobal(atributos elem);
+
+
+
+
+//------------  Funciones de manejo de la Tabla de Simbolos  ------------------------
+/**
+  * Inserta una entrada a la tabla de simbolos e incrementa el TOPE en 1
+**/
+int tsAddEntrada(entradaTS ent);
+
+/**
+  * Elimina el elemento TOPE de tabla de simbolos y decrementa el TOPE en 1
+**/
+int tsDelEntrada();
+
+/**
+ * Elimina de la tabla de simbolos todas las entradas hasta la ultima marca de inicio de bloque, tambien incluida
+ */
+void tsVaciarEntradas();
+
+/**
+  * Busca un identificador en la TS para comprobar que ha sido declarado
+**/
+void tsBuscarIdent(atributos elem);
+
+/**
+  * Busca una entrada dado su nombre:
+  * Si la encuentra devuelve el indice donde se encuentra la entrada
+  * Si no la encuentra devuelve -1
+**/
+int tsBuscarEntrada(char* nombre);
 
 /**
  * Inserta un nuevo identificador en la tabla de simbolos
@@ -95,17 +142,8 @@ void tsInsertaSubprog(atributos elem);
 /**
  * Inserta una entrada de parametro formal de un subprograma en la tabla de simbolos
  */
-void tsInsertaParamFormal(entradaTS e);
+void tsInsertaParamFormal(atributos elem);
 
-/**
- * Indica si el atributo es un array o no
- */
-int esArray(entradaTS e);
-
-/**
- * Indica que si siendo arrays los dos entradaTS tienen el mismo tamanyo.
- */
-int igualTam(entradaTS e1, entradaTS e2);
 
 
 
@@ -186,43 +224,12 @@ void tsCompruebaParametro(entradaTS parametro);
 
 
 
-//------------  Funciones de manejo de la Tabla de Simbolos  ------------------------
-/**
-  * Anyade una entrada a la tabla de simbolos e incrementa el TOPE en 1
-**/
-int tsAddEntrada(entradaTS ent);
-
-/**
-  * Elimina el elemento TOPE de tabla de simbolos y decrementa el TOPE en 1
-**/
-int tsDelEntrada();
-
-/**
- * Elimina de la tabla de simbolos todas las entradas hasta la ultima marca de inicio de bloque, tambien incluida
- */
-void tsVaciarEntradas();
-
-/**
-  * Busca un identificador en la TS para comprobar que ha sido declarado
-**/
-void tsBuscarIdent(char* nombre);
-
-/**
-  * Busca una entrada dado su nombre:
-  * Si la encuentra devuelve el indice donde se encuentra la entrada
-  * Si no la encuentra devuelve -1
-**/
-int tsBuscarEntrada(char* nombre);
-
-
-
-
 //----------------------  Funciones de Impresion --------------------------------------
 
 /**
  * Imprime como una cadena de caracteres una entrada de la tabla de simbolos dada
  */
-void imprimirEntrada(entradaTS* e);
+void imprimirEntrada(int indice);
 
 /**
   * Imprime como cadena el tipo de entrada dado
@@ -240,6 +247,6 @@ void imprimeTipoDato(tDato tipo);
 void imprimeTS(char* mensaje);
 
 /**
- * Imprime por pantalla la informacion asociada al atributo
+ * Imprime por pantalla un atributo dado
  */
-void imprimeAtributo(entradaTS e);
+void imprimeAtributo(atributos e);

@@ -25,10 +25,10 @@
 "var"							{ ; return(VAR); }
 "finvar"						{ ; return(FINVAR); }
 "devolver"						{ ; return(DEVOLVER); }
-"entero"						{ ; return(TIPOBASICO); }
-"real"							{ ; return(TIPOBASICO); }
-"caracter"						{ ; return(TIPOBASICO); }
-"logico"						{ ; return(TIPOBASICO); }
+"entero"						{ ; yylval.tipo = ENTERO; return(TIPOBASICO); }
+"real"							{ ; yylval.tipo = REAL; return(TIPOBASICO); }
+"caracter"						{ ; yylval.tipo = CARACTER; return(TIPOBASICO); }
+"logico"						{ ; yylval.tipo = BOOLEANO; return(TIPOBASICO); }
 "["								{ ; return(CORIZQ); }
 "]"								{ ; return(CORDER); }
 ","								{ ; return(COMA); }
@@ -58,7 +58,7 @@
 "'"[^"'"]"'"					{ ; yylval.atrib = 0; return(CONSTCARACTER); }
 "\""[^"'"]+"\""					{ ; yylval.atrib = 3; return(CONSTCADENA); }
 
-\n								{ ++linea_actual; }
+\n								{ ++lineaActual; }
 \t								{ ; }
 [ \t]							{ ; }
 \r								{ ; }

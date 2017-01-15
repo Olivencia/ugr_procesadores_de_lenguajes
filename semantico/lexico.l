@@ -1,8 +1,8 @@
 %{
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
-#include "tablaSimbolos.h"
 
 %}
 
@@ -37,26 +37,26 @@
 ";"								{ ; return(PUNTOYCOMA); }
 "+"								{ ; return(SUMRES); }
 "-"								{ ; return(SUMRES); }
-"*"								{ ; return(OPBINARIO); }
-"/"								{ ; return(OPBINARIO); }
-"=="							{ ; return(OPRELACIONAL); }
-"!="							{ ; return(OPRELACIONAL); }
-"<="							{ ; return(OPRELACIONAL); }
-">="							{ ; return(OPRELACIONAL); }
-"<"								{ ; return(OPRELACIONAL); }
-">"								{ ; return(OPRELACIONAL); }
+"*"								{ ; yylval.atrib = 0; return(OPBINARIO); }
+"/"								{ ; yylval.atrib = 1; return(OPBINARIO); }
+"=="							{ ; yylval.atrib = 0; return(OPRELACIONAL); }
+"!="							{ ; yylval.atrib = 1; return(OPRELACIONAL); }
+"<="							{ ; yylval.atrib = 2; return(OPRELACIONAL); }
+">="							{ ; yylval.atrib = 3; return(OPRELACIONAL); }
+"<"								{ ; yylval.atrib = 4; return(OPRELACIONAL); }
+">"								{ ; yylval.atrib = 5; return(OPRELACIONAL); }
 "&&"							{ ; return(OPAND); }
 "||"							{ ; return(OPOR); }
-"!"								{ ; return(OPUNARIO); } 
-"#"								{ ; return(OPUNARIO); }
-"?"								{ ; return(OPUNARIO); }
+"!"								{ ; yylval.atrib = 0; return(OPUNARIO); } 
+"#"								{ ; yylval.atrib = 1; return(OPUNARIO); }
+"?"								{ ; yylval.atrib = 2; return(OPUNARIO); }
 "verdadero"						{ ; yylval.atrib = 0; return(CONSTLOGICA); }
 "falso" 						{ ; yylval.atrib = 1; return(CONSTLOGICA); }
 [a-zA-Z]([a-zA-Z]|[0-9]|_)*		{ ; yylval.lexema = strdup(yytext); return(IDENT); }
-[0-9]+							{ ; yylval.atrib = 280; return(CONSTENTERA); }
-[0-9]*\.([0-9]+)?				{ ; yylval.atrib = 281; return(CONSTREAL); }
-"'"[^"'"]"'"					{ ; yylval.atrib = 282; return(CONSTCARACTER); }
-"\""[^"'"]+"\""					{ ; yylval.atrib = 284; return(CONSTCADENA); }
+[0-9]+							{ ; yylval.atrib = 2; return(CONSTENTERA); }
+[0-9]*\.([0-9]+)?				{ ; yylval.atrib = 1; return(CONSTREAL); }
+"'"[^"'"]"'"					{ ; yylval.atrib = 0; return(CONSTCARACTER); }
+"\""[^"'"]+"\""					{ ; yylval.atrib = 3; return(CONSTCADENA); }
 
 \n								{ ++linea_actual; }
 \t								{ ; }

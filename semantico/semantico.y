@@ -1,15 +1,10 @@
 %{
-/********************************************************
-**
-** Fichero: PRUEBA.Y
-** Función: Pruebas de YACC para practicas de PL
-**
-********************************************************/
+
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "tablaSimbolos.h"
+#include "semantico.h"
 
 /* 
 ** La siguiente declaracion permite que ’yyerror’ se pueda invocar desde el
@@ -30,10 +25,6 @@ int yydebug=1;
 %}
 
 %error-verbose
-/*
-** En caso de usar mensajes de error mediante ’mes’ y ’mes2’ (ver apéndice D)
-** nada de lo anterior debe tenerse en cuenta.
-*/
 
 %left OPOR
 %left OPAND
@@ -76,31 +67,31 @@ int yydebug=1;
 
 programa : PRINCIPAL bloque ;
 
-bloque : INICIOBLOQUE {tsInsertaMarca();} declar_variables_locales declar_subprogs sentencias FINBLOQUE ;
+bloque : INICIOBLOQUE { tsInsertaMarca(); } declar_variables_locales declar_subprogs sentencias FINBLOQUE { tsVaciarEntradas(); } ;
 
 declar_subprogs : declar_subprogs declar_subprog | ;
 
-declar_subprog : cabecera_subprograma bloque ;
+declar_subprog : cabecera_subprograma { subProg = 1; } bloque { subProg = 0; } ;
 
-declar_variables_locales : VAR variables_locales FINVAR | ;
+declar_variables_locales : VAR { declarVar = 0; } variables_locales FINVAR { declarVar = 1; } | ;
 
 variables_locales : variables_locales cuerpo_declar_variables
 	| cuerpo_declar_variables  ;
 
 cuerpo_declar_variables : TIPOBASICO lista_variables PUNTOYCOMA 
-	| error;
+	| error ;
 
-lista_variables : variable {tsInsertaIdent($1)} COMA lista_variables
-	| variable {tsInsertaIdent($1)} error lista_variables
-	| variable {tsInsertaIdent($1)} ;
+lista_variables : variable COMA lista_variables
+	| variable error lista_variables
+	| variable ;
 
-variable : IDENT declar_matriz
-	| IDENT ;
+variable : IDENT { if(declarVar == 0) { tsInsertaIdent($1); }else { tsBuscarIdent($1.lexema); } } declar_matriz 
+	| IDENT { if(declarVar == 0) { tsInsertaIdent($1); }else { tsBuscarIdent($1.lexema); } } ;
 
 declar_matriz : CORIZQ CONSTENTERA CORDER
 	| CORIZQ CONSTENTERA COMA CONSTENTERA CORDER ;
 
-cabecera_subprograma : tipo_retorno IDENT PARIZQ lista_parametros PARDER ;
+cabecera_subprograma : tipo_retorno IDENT PARIZQ lista_parametros PARDER { tsInsertaSubprog($1); } ;
 
 tipo_retorno : TIPOBASICO declar_matriz
 	| TIPOBASICO ;

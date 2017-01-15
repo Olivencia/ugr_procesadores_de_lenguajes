@@ -2,8 +2,8 @@ principal
 {
 
 	var
-		entero ve pepe, manolo
-		real v9[9] pepita, wete;
+		entero ve, pepe, manolo, manolo;
+		real v9[9], pepita, wete;
 
 	finvar
 	x=3*2;

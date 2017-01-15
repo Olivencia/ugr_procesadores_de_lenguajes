@@ -1,12 +1,13 @@
+#include "semantico.h"
 
-#include "tablaSimbolos.h"
-#include <stdio.h>
-#include <string.h>
-
-long int TOPE = 0;
 entradaTS TS[MAX_ENTRADAS];
-tDato tipoGlobal = DESC;
+long int TOPE = 0;
+int declarVar = 0;
 int subProg = 0;
+
+
+
+tDato tipoGlobal = DESC;
 int topeSubprog = -1;
 int lineaActual = 1;
 int funcionActual = -1;
@@ -16,7 +17,6 @@ int topeFun = -1;
 int pilaCont[MAX_ENTRADAS];
 int topeCont = -1;
 int hayError = 0;
-unsigned char declarVar = 0;
 
 
 
@@ -24,31 +24,37 @@ unsigned char declarVar = 0;
 /**
  * Ajusta la variable tipoGlobal segun se cambie el tipo en las declaraciones de variables
  */
-void ajustaTipo(entradaTS e);
+void ajustaTipo(atributos elem);
 
 /**
  * Inserta un nuevo identificador en la tabla de simbolos
  */
-void tsInsertaIdent(entradaTS elem){
-	//Se comprueba que no hemos llegado al tope de la pila y que el identificador no existe
+void tsInsertaIdent(atributos elem){
+	//Se comprueba que no hemos llegado al tope de la pila que el identificador no esta ya 
+	//declarado previamente y que estamos declarando variables
 	int j = TOPE-1;
 	int encontrado = 0;
    
-	if(TOPE >= 0) {
+	if(TOPE >= 0 && declarVar == 0) {
 		//Se busca la marca de comienzo de bloue
 		while((TS[j].entrada != MARCA) && (j >= 0) && !encontrado) {
-			if() {
-				encontrado = 1
-				printf("Error en la linea %d. Identificador duplicado: %s\n", lineaActual);
+			if(strcmp(TS[j].lexema, elem.lexema) != 0) {
+				j--;
 			}
 			else {
-				j--;
+				encontrado = 1;
+				printf("Error en la linea %d. Identificador duplicado: %s\n", lineaActual, elem.lexema);
 	 		}
 		}
 
 		//Si no hemos encontrado el identificador lo insertamos en la TS
 		if(!encontrado) {
-			tsAddEntrada(elem);
+			entradaTS nuevaEntrada;
+			nuevaEntrada.entrada = VARIABLE;
+			nuevaEntrada.lexema = elem.lexema;
+			nuevaEntrada.tipoDato = elem.tipo;
+			nuevaEntrada.nParam = 0;
+			tsAddEntrada(nuevaEntrada);
 		}
 	}
 };
@@ -57,12 +63,23 @@ void tsInsertaIdent(entradaTS elem){
  * Inserta una marca de comienzo de un bloque
  */
 void tsInsertaMarca(){
-	anyadir_entrada(Marca,"",Desconocido,0,0,0,0);
+	entradaTS entradaInicioBloque;
+
+	entradaInicioBloque.entrada = MARCA;
+	strcpy(entradaInicioBloque.lexema, "");
+	entradaInicioBloque.nParam = 0;
+
+	tsAddEntrada(entradaInicioBloque);
+	
+	//AQUI SE HACE ALGO QUE AUN NO ENTIENDO EN REFERENCIA A LA 
+	//DEFINICION DE FUNCIONES QUE HAY QUE REPASAR
+	/*
 	if(subProg==1){
 		//printf("Marca: subpro==1\n);
 		int i=TOPE;
 		int encontrada_marca=0;
 		int encontrada_funcion=0;
+		
 		while(i>0 && TS[i].tipoEntrada==Marca){
 			if(!encontrada_marca && TS[i].tipoEntrada==Marca){
 				encontrada_marca==1;
@@ -76,13 +93,22 @@ void tsInsertaMarca(){
 			i--;
 		}
 	}
+	*/
 }
-};
 
 /**
  * Inserta una entrada de subprograma en la tabla de simbolos
 */
-void tsInsertaSubprog(entradaTS ident, entradaTS tipoRetorno);
+void tsInsertaSubprog(atributos elem) {
+	entradaTS entradaSubProg;
+
+	entradaSubProg.entrada = FUNCION;
+	entradaSubProg.lexema = elem.lexema;
+	entradaSubProg.nParam = 0;
+
+	tsAddEntrada(entradaSubProg);
+
+}
 
 /**
  * Inserta una entrada de parametro formal de un subprograma en la tabla de simbolos
@@ -98,25 +124,6 @@ int esArray(entradaTS e);
  * Indica que si siendo arrays los dos entradaTS tienen el mismo tamanyo.
  */
 int igualTam(entradaTS e1, entradaTS e2);
-
-/**
- * Comprueba que no se supera el limite de elementos y lo incrementa en 1
-*/
-void incrementaTope() {
-	if(TOPE>=MAX_ENTRADAS) {
-		//ERROR: PILA LLENA
-		exit(1);
-	} else {
-		TOPE = TOPE + 1;
-	}
-}
-
-/**
- * Decrementa el tope de la pila en 1
-*/
-void decrementaTope() {
-	TOPE = TOPE - 1;
-}
 
 
 
@@ -201,28 +208,88 @@ void tsCompruebaParametro(entradaTS parametro);
 /**
   * Anyade una entrada a la tabla de simbolos 
 **/
-void tsAddEntrada(entradaTS ent){
-	TS[TOPE].entrada=ent.entrada;
-	TS[TOPE].lexema=ent.lexema;
-	TS[TOPE].tipoDato=ent.tipoDato;
-	TS[TOPE].nParam=ent.nParam;
-	TS[TOPE].numDim=ent.numDim;
-	TS[TOPE].tamDim1=ent.tamDim1;
-	TS[TOPE].tamDim2=ent.tamDim2;
-	incrementaTope();
+int tsAddEntrada(entradaTS ent) {
+	if(TOPE < MAX_ENTRADAS) {
+		TS[TOPE].entrada=ent.entrada;
+		TS[TOPE].lexema=ent.lexema;
+		TS[TOPE].tipoDato=ent.tipoDato;
+		TS[TOPE].nParam=ent.nParam;
+		TS[TOPE].numDim=ent.numDim;
+		TS[TOPE].tamDim1=ent.tamDim1;
+		TS[TOPE].tamDim2=ent.tamDim2;
+		TOPE = TOPE + 1;
+		return 1;
+	} else {
+		//printf("ERROR PILA LLENA");
+		return 0;
+	}
 };
 
 /**
-  * Quita todas las entradas hasta que encuentre una entrada especial de marca
+  * Elimina el elemento TOPE de tabla de simbolos 
 **/
-void quitarBloqueCompleto();
+int tsDelEntrada() {
+	// Si la pila no está vacía. 
+	if(TOPE > 0){
+		TOPE = TOPE - 1;
+		return 1;
+	}else{
+		//printf("ERROR PILA VACIA");
+		return 0;
+	}
+};
+
+/**
+ * Elimina de la tabla de simbolos todas las entradas hasta la ultima marca de inicio de bloque, tambien incluida
+ */
+void tsVaciarEntradas() {
+	tEntrada tipo; 
+	
+	tipo = TS[TOPE-1].entrada;
+	while((tipo != MARCA) && (TOPE > 0)){
+		tsDelEntrada();
+		tipo = TS[TOPE-1].entrada;
+	}
+	// Eliminar la marca de inicio.
+	if(tipo == MARCA){
+		tsDelEntrada();
+	} else {
+		//printf("ERROR NO SE HA ENCONTRADO FIN DE MARCA AL VACIAR ENTRADAS DE TS");
+	}
+}
+
+/**
+  * Busca un identificador en la TS para comprobar que ha sido declarado
+**/
+void tsBuscarIdent(char* nombre) {
+	if(tsBuscarEntrada(nombre) == -1) {
+		printf("Error en la linea %d. Identificador no declarado: %s\n", lineaActual, nombre);
+	}
+}
 
 /**
   * Busca una entrada dado su nombre:
   * Si la encuentra devuelve el indice donde se encuentra la entrada
   * Si no la encuentra devuelve -1
 **/
-int buscarEntrada (char* nombre/*<--creo que esto no hace falta*/, entradaTS* entrada);
+int tsBuscarEntrada(char* nombre) {
+	int i = TOPE-1;
+	int encontrado = 0;
+	
+	while (i > 0 && !encontrado) {
+		if(strcmp(nombre, TS[i].lexema) != 0) {
+			i--;
+		} else {
+			encontrado = 1;
+		}
+	}
+	
+	if(encontrado) {
+		return i;
+	} else {
+		return -1;
+	}
+}
 
 
 

@@ -369,15 +369,12 @@ FILE *yyin = (FILE *) 0, *yyout = (FILE *) 0;
 
 typedef int yy_state_type;
 
+#define YY_FLEX_LEX_COMPAT
 extern int yylineno;
 
 int yylineno = 1;
 
-extern char *yytext;
-#ifdef yytext_ptr
-#undef yytext_ptr
-#endif
-#define yytext_ptr yytext
+extern char yytext[];
 
 static yy_state_type yy_get_previous_state (void );
 static yy_state_type yy_try_NUL_trans (yy_state_type current_state  );
@@ -395,6 +392,9 @@ static void yy_fatal_error (yyconst char msg[]  );
 	yyleng = (size_t) (yy_cp - yy_bp); \
 	(yy_hold_char) = *yy_cp; \
 	*yy_cp = '\0'; \
+	if ( yyleng >= YYLMAX ) \
+		YY_FATAL_ERROR( "token too large, exceeds YYLMAX" ); \
+	yy_flex_strncpy( yytext, (yytext_ptr), yyleng + 1 ); \
 	(yy_c_buf_p) = yy_cp;
 
 #define YY_NUM_RULES 52
@@ -581,15 +581,20 @@ int yy_flex_debug = 0;
 #define yymore() yymore_used_but_not_detected
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
-char *yytext;
+#ifndef YYLMAX
+#define YYLMAX 8192
+#endif
+
+char yytext[YYLMAX];
+char *yytext_ptr;
 #line 1 "lexico.l"
 #line 2 "lexico.l"
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
-#include "tablaSimbolos.h"
 
-#line 593 "lex.yy.c"
+#line 598 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -810,7 +815,7 @@ YY_DECL
 #line 12 "lexico.l"
 
 
-#line 814 "lex.yy.c"
+#line 819 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1010,42 +1015,42 @@ YY_RULE_SETUP
 case 27:
 YY_RULE_SETUP
 #line 40 "lexico.l"
-{ ; return(OPBINARIO); }
+{ ; yylval.atrib = 0; return(OPBINARIO); }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
 #line 41 "lexico.l"
-{ ; return(OPBINARIO); }
+{ ; yylval.atrib = 1; return(OPBINARIO); }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
 #line 42 "lexico.l"
-{ ; return(OPRELACIONAL); }
+{ ; yylval.atrib = 0; return(OPRELACIONAL); }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
 #line 43 "lexico.l"
-{ ; return(OPRELACIONAL); }
+{ ; yylval.atrib = 1; return(OPRELACIONAL); }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
 #line 44 "lexico.l"
-{ ; return(OPRELACIONAL); }
+{ ; yylval.atrib = 2; return(OPRELACIONAL); }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
 #line 45 "lexico.l"
-{ ; return(OPRELACIONAL); }
+{ ; yylval.atrib = 3; return(OPRELACIONAL); }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
 #line 46 "lexico.l"
-{ ; return(OPRELACIONAL); }
+{ ; yylval.atrib = 4; return(OPRELACIONAL); }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
 #line 47 "lexico.l"
-{ ; return(OPRELACIONAL); }
+{ ; yylval.atrib = 5; return(OPRELACIONAL); }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
@@ -1060,17 +1065,17 @@ YY_RULE_SETUP
 case 37:
 YY_RULE_SETUP
 #line 50 "lexico.l"
-{ ; return(OPUNARIO); } 
+{ ; yylval.atrib = 0; return(OPUNARIO); } 
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
 #line 51 "lexico.l"
-{ ; return(OPUNARIO); }
+{ ; yylval.atrib = 1; return(OPUNARIO); }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
 #line 52 "lexico.l"
-{ ; return(OPUNARIO); }
+{ ; yylval.atrib = 2; return(OPUNARIO); }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
@@ -1090,24 +1095,24 @@ YY_RULE_SETUP
 case 43:
 YY_RULE_SETUP
 #line 56 "lexico.l"
-{ ; yylval.atrib = 280; return(CONSTENTERA); }
+{ ; yylval.atrib = 2; return(CONSTENTERA); }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
 #line 57 "lexico.l"
-{ ; yylval.atrib = 281; return(CONSTREAL); }
+{ ; yylval.atrib = 1; return(CONSTREAL); }
 	YY_BREAK
 case 45:
 /* rule 45 can match eol */
 YY_RULE_SETUP
 #line 58 "lexico.l"
-{ ; yylval.atrib = 282; return(CONSTCARACTER); }
+{ ; yylval.atrib = 0; return(CONSTCARACTER); }
 	YY_BREAK
 case 46:
 /* rule 46 can match eol */
 YY_RULE_SETUP
 #line 59 "lexico.l"
-{ ; yylval.atrib = 284; return(CONSTCADENA); }
+{ ; yylval.atrib = 3; return(CONSTCADENA); }
 	YY_BREAK
 case 47:
 /* rule 47 can match eol */
@@ -1140,7 +1145,7 @@ YY_RULE_SETUP
 #line 67 "lexico.l"
 ECHO;
 	YY_BREAK
-#line 1144 "lex.yy.c"
+#line 1149 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 

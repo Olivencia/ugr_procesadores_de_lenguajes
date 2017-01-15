@@ -1,8 +1,6 @@
-#ifndef __TABLA_SIMBOLOS_H
-#define __TABLA_SIMBOLOS_H
-
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 typedef enum {
 	MARCA = 0, 
@@ -35,28 +33,37 @@ typedef struct {
 } entradaTS;
 
 typedef struct {
-	int atrib;
-	char *lexema;
-	tDato tipo;
+	int atrib; //ATRIBUTOS (SI LOS TIENE)
+	char *lexema; 
+	tDato tipo; //TIPO DE DATO
 } atributos;
 
 #define YYSTYPE atributos
 #define MAX_ENTRADAS 500
 
 extern long int TOPE;
-extern int subProg;					// Variable que indica el comienzo de una declaracion de un subprograma o funcion
-
 
 extern entradaTS ts[MAX_ENTRADAS];
-extern unsigned char declarVar; 	//0 si estamos declarando 1 si estamos utilizando la variable
+//0 si estamos declarando 1 si estamos utilizando la variable
+extern int declarVar;
+// Variable que indica el comienzo de una declaracion de un subprograma o funcion
+// 1 si estoy en cabec_subprog 0 si estoy en bloque
+extern int subProg;
 
 
 //A partir de aqui las que necesitemos
-extern tDato globalTipo;			// Variable global para almacenar el tipo en las declaraciones
-extern int topeSubprog;				// Sirve para indicar en que indice se encuentra la entrada de subprograma para cuando se inserten las entradas de los parametros
-extern int lineaActual;				// Variable que almacena la linea actual por la cual se va analizando
-extern int funcionActual;			// Variable que almacena el indice de la entrada de la TS de la funcion que se esta analizando para realizar la comprobacion de tipos a sus parametros
-extern int contadorParam;			// Contador que sirve para llevar la cuenta de que parametro estamos analizando
+// Variable global para almacenar el tipo en las declaraciones
+extern tDato globalTipo;
+// Sirve para indicar en que indice se encuentra la entrada de subprograma para cuando se 
+// inserten las entradas de los parametros
+extern int topeSubprog;
+// Variable que almacena la linea actual por la cual se va analizando	
+extern int lineaActual;	
+// Variable que almacena el indice de la entrada de la TS de la funcion que se esta 
+// analizando para realizar la comprobacion de tipos a sus parametros			
+extern int funcionActual;
+// Contador que sirve para llevar la cuenta de que parametro estamos analizando
+extern int contadorParam;
 extern int pilaPun[MAX_ENTRADAS];
 extern int topeFun;
 extern int pilaCont[MAX_ENTRADAS];
@@ -68,12 +75,12 @@ extern int topeCont;
 /**
  * Ajusta la variable tipoGlobal segun se cambie el tipo en las declaraciones de variables
  */
-void ajustaTipo(entradaTS e);
+void ajustaTipo(atributos elem);
 
 /**
  * Inserta un nuevo identificador en la tabla de simbolos
  */
-void tsInsertaIdent(entradaTS elem);
+void tsInsertaIdent(atributos elem);
 
 /**
  * Inserta una marca de comienzo de un bloque
@@ -83,7 +90,7 @@ void tsInsertaMarca();
 /**
  * Inserta una entrada de subprograma en la tabla de simbolos
 */
-void tsInsertaSubprog(entradaTS ident, entradaTS tipoRetorno);
+void tsInsertaSubprog(atributos elem);
 
 /**
  * Inserta una entrada de parametro formal de un subprograma en la tabla de simbolos
@@ -99,16 +106,6 @@ int esArray(entradaTS e);
  * Indica que si siendo arrays los dos entradaTS tienen el mismo tamanyo.
  */
 int igualTam(entradaTS e1, entradaTS e2);
-
-/**
- * Comprueba que no se supera el limite de elementos y lo incrementa en 1
-*/
-void incrementaTope();
-
-/**
- * Decrementa el tope de la pila en 1
-*/
-void decrementaTope();
 
 
 
@@ -191,21 +188,31 @@ void tsCompruebaParametro(entradaTS parametro);
 
 //------------  Funciones de manejo de la Tabla de Simbolos  ------------------------
 /**
-  * Anyade una entrada a la tabla de simbolos 
+  * Anyade una entrada a la tabla de simbolos e incrementa el TOPE en 1
 **/
-void tsAddEntrada(tEntrada tipoEntrada, char* nombre,  tDato tipoDato, int Parametros, int numDim, int tamDim1, int tamDim2);
+int tsAddEntrada(entradaTS ent);
 
 /**
-  * Quita todas las entradas hasta que encuentre una entrada especial de marca
+  * Elimina el elemento TOPE de tabla de simbolos y decrementa el TOPE en 1
 **/
-void quitarBloqueCompleto();
+int tsDelEntrada();
+
+/**
+ * Elimina de la tabla de simbolos todas las entradas hasta la ultima marca de inicio de bloque, tambien incluida
+ */
+void tsVaciarEntradas();
+
+/**
+  * Busca un identificador en la TS para comprobar que ha sido declarado
+**/
+void tsBuscarIdent(char* nombre);
 
 /**
   * Busca una entrada dado su nombre:
   * Si la encuentra devuelve el indice donde se encuentra la entrada
   * Si no la encuentra devuelve -1
 **/
-int buscarEntrada (char* nombre/*<--creo que esto no hace falta*/, entradaTS* entrada);
+int tsBuscarEntrada(char* nombre);
 
 
 
@@ -236,5 +243,3 @@ void imprimeTS(char* mensaje);
  * Imprime por pantalla la informacion asociada al atributo
  */
 void imprimeAtributo(entradaTS e);
-
-#endif

@@ -1,10 +1,10 @@
 .SUFFIXES:
 
-semantico: main.o y.tab.o tablaSimbolos.o
-	gcc -o semantico main.o y.tab.o
+semantico: main.o y.tab.o semantico.o
+	gcc -o semantico main.o y.tab.o semantico.o
 
-tablaSimbolos.o: tablaSimbolos.c
-	gcc -c -o tablaSimbolos.o tablaSimbolos.c
+semantico.o: semantico.c
+	gcc -c -o semantico.o semantico.c
 
 y.tab.o: y.tab.c
 	gcc -c y.tab.c
@@ -12,15 +12,16 @@ y.tab.o: y.tab.c
 main.o: main.c
 	gcc -c main.c
 	
-y.tab.c: sintactico.y lex.yy.c
-	bison -Wconflicts-sr -Wconflicts-rr -o y.tab.c sintactico.y
+y.tab.c: semantico.y lex.yy.c
+	bison -Wconflicts-sr -Wconflicts-rr -o y.tab.c semantico.y
 
 lex.yy.c: lexico.l
-	lex lexico.l
+	flex -l lexico.l
 
 limpia: 
-	rm -f semantico main.o y.tab.o y.tab.c lex.yy.c tablaSimbolos.o
+	rm -f semantico main.o y.tab.o y.tab.c lex.yy.c semantico.o
 
 todo: 
+	reset
 	make limpia
-	make sintactico
+	make semantico

@@ -1,0 +1,22 @@
+principal
+{
+	var
+		entero a, d[3,4];
+		real x[6,6], v;
+		real p[5,7];
+	finvar
+	real[5,7] suma(entero a[9,9], entero b)
+	{
+		var
+			entero c, y[2,2];
+		finvar
+		
+		y = {5,4;5,3};
+		c = a[2,9]+b;
+		devolver c;
+	}
+	
+	p = suma (d, a);
+	d[1,2]=1;
+	a = d[1,2];
+}

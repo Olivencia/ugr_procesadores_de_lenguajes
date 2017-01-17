@@ -1,0 +1,8 @@
+principal
+{
+	var
+		entero a[2,2], b[2];
+		caracter c;
+	finvar
+	a[2,2]=b[2,2];
+}

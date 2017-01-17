@@ -1647,8 +1647,20 @@ yyreduce:
 #line 1648 "y.tab.c" /* yacc.c:1646  */
     break;
 
+  case 75:
+#line 190 "semantico.y" /* yacc.c:1646  */
+    { tsLlamadaFuncion((yyvsp[-3]), &(yyval)); }
+#line 1654 "y.tab.c" /* yacc.c:1646  */
+    break;
 
-#line 1652 "y.tab.c" /* yacc.c:1646  */
+  case 76:
+#line 191 "semantico.y" /* yacc.c:1646  */
+    { tsLlamadaFuncion((yyvsp[-2]), &(yyval)); }
+#line 1660 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+
+#line 1664 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires

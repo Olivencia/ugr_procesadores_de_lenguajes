@@ -13,7 +13,7 @@ int pilaFun[MAX_ENTRADAS];
 int topeFun = -1;
 int pilaCont[MAX_ENTRADAS];
 int topeCont = -1;
-
+int auxiliarAgregados = 0;
 /*
 int topeSubprog = -1;
 int contadorParam = 0;
@@ -105,11 +105,10 @@ int tsBuscarIdent(atributos elem) {
 	int encontrado = 0;
 	
 	while (i > 0 && !encontrado && TS[i].entrada != MARCA) {
-	
-		if (strcmp(elem.lexema, TS[i].lexema) != 0 && TS[i].entrada == VARIABLE) {
-			i--;
-		} else {
+		if (TS[i].entrada == VARIABLE && strcmp(elem.lexema, TS[i].lexema) == 0) {
 			encontrado = 1;
+		} else{
+			i--;
 		}
 	}
 	
@@ -126,23 +125,23 @@ int tsBuscarIdent(atributos elem) {
   * Si la encuentra devuelve el indice donde se encuentra la entrada
   * Si no la encuentra devuelve -1
 **/
-int tsBuscarEntrada(char* nombre) {
-	int i = TOPE-1;
+int tsBuscarFuncion(atributos elem) {
+	int i = TOPE - 1;
 	int encontrado = 0;
 	
-	while (i > 0 && !encontrado) {
-		if(strcmp(nombre, TS[i].lexema) != 0) {
-			i--;
-		} else {
+	while (i > 0 && !encontrado && TS[i].entrada != MARCA) {
+		if (TS[i].entrada == FUNCION && strcmp(elem.lexema, TS[i].lexema) == 0) {
 			encontrado = 1;
+		} else{
+			i--;
 		}
 	}
 	
-	if(encontrado) {
-		return i;
-	} else {
-		//printf("ERROR: NO SE HA ENCONTRADO LA ENTRADA: %s", nombre);
+	if(!encontrado) {
+		//printf("Error linea %d. Identificador no declarado: %s\n", lineaActual, elem.lexema);
 		return -1;
+	} else {
+		return i;
 	}
 }
 
@@ -294,7 +293,9 @@ void tsActualizaNparam(atributos elem) {
  * Busca la entrada de tipo Funcion mas proxima desde el tope de la tabla de simbolos
  * y devuelve el indice
  */
-int tsBuscarFuncionProxima();
+int tsGetFuncion() {
+	
+}
 
 /**
  * Comprobacion semantica de la sentencia de retorno.
@@ -308,7 +309,6 @@ void tsCompruebaRetorno(atributos expresion, atributos* retorno);
  */
 void tsGetIdent(atributos identificador, atributos* res) {
 	int indice = tsBuscarIdent (identificador);
-	
 	if(indice==-1) {
 		printf("Error linea %d: No se ha encontrado el identificador %s.\n", lineaActual, identificador.lexema);
 	}
@@ -570,55 +570,44 @@ void tsOpSumRes(atributos o1, atributos operador, atributos o2, atributos* res) 
  * Comprobacion semantica de la llamada a subprograma
  */
 void tsLlamadaFuncion(atributos identificador, atributos* res) {
-
-	//Buscar la entrada de la funcion
-	int indice = tsBuscarEntrada(identificador.lexema);
 	
-	if (indice> -1 && TS[indice].tipoDato == FUNCION) {
-		pilaFun[topeFun+1] = indice;
-		topeFun++;
-		pilaCont[topeCont + 1] = 0;
-		topeCont++;
+	int indice = tsBuscarFuncion (identificador);
+	if(indice==-1) {
+		funcionActual = -1;
+		printf("Error linea %d: No se ha encontrado el identificador %s.\n", lineaActual, identificador.lexema);
 	}
 	else {
-		printf("Error linea %d: No se ha encontrado la funcion con nombre %s.\n", lineaActual, identificador.lexema);
-		//hay_error=1;
+		if (numParam != TS[indice].nParam) { 
+			printf("Error, numero de parametros incorrecto\n"); 
+		} else {
+			funcionActual = indice;
+			res->lexema = strdup(TS[indice].lexema);
+			res->tipo = TS[indice].tipoDato;
+			res->numDim = TS[indice].numDim;
+			res->tamDim1 = TS[indice].tamDim1;
+			res->tamDim2 = TS[indice].tamDim2;
+		}
 	}
 }
 
 /**
  * Comprobacion semantica de cada parametro en una llamada a una funcion
  */
-void tsCompruebaParametro(atributos parametro) {
+void tsCompruebaParametro(atributos parametro, int parametroAComprobar) {
 
-	entradaTS e = TS[pilaFun[topeFun]+1+pilaCont[topeCont]];
-	if (pilaCont[topeCont] >= TS[pilaFun[topeFun]].nParam) {
+	int posicionParametro = funcionActual + parametroAComprobar;
 	
-		printf("Error linea %d: Se han pasado demasiados parametros a la funcion.\n", lineaActual);
-		//hay_error=1;
+	if (parametro.tipo != TS[posicionParametro].tipoDato) {
+		printf("El tipo del parametro esperado no es el correcto\n");
 		return;
 	}
 	
-	if (e.tipoDato != parametro.tipo) {
-		printf("Error linea %d: El tipo de parametro %d no coincide.\n", lineaActual, pilaCont[topeCont]);
-		//hay_error=1;
+	if (parametro.numDim != TS[posicionParametro].numDim || parametro.tamDim1 != TS[posicionParametro].tamDim1  || parametro.tamDim2 != TS[posicionParametro].tamDim2) {
+		printf("El tamanyo esperado no es el correcto\n");
 		return;
 	}
 	
-	atributos tmp; 
-	tmp.numDim=e.numDim; 
-	tmp.tamDim1=e.tamDim1; 
-	tmp.tamDim2=e.tamDim2;
-	
-	if (!igualTam(tmp, parametro)) {
-		printf("Error linea %d: No concuerda el tamanyo del parametro %d.\n", lineaActual, pilaCont[topeCont]);
-		//hay_error=1;
-		return;
-	}
-	pilaCont[topeCont]++;
 }
-
-
 
 
 //----------------------  Funciones de Impresion --------------------------------------

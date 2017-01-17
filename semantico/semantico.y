@@ -140,8 +140,8 @@ sentencia : bloque
 	| repetir_hasta PUNTOYCOMA ;
 
 asignacion : variable ASIGNACION expresion 
-		{ if($1.tipo!=$3.tipo) { printf("Error asign linea %d: Los tipos %d %d de la parte izquierda y derecha no coinciden.\n",lineaActual, $1.tipo, $3.tipo); }
-		if(!igualTam($1,$3))  { printf("Error asign linea %d: La parte izquierda y la parte derecha deben tener el mismo tamanyo.\n",lineaActual); } };
+		{ if($1.tipo!=$3.tipo) {  printf("Error asign linea %d: Los tipos de la parte izquierda %d y derecha %d no coinciden.\n",lineaActual, $1.tipo, $3.tipo); }
+		if(!igualTam($1,$3))  { imprimeAtributo($1,"izq"); imprimeAtributo($3, "der");printf("Error asign linea %d: La parte izquierda y la parte derecha deben tener el mismo tamanyo.\n",lineaActual); } };
 
 si : SI PARIZQ expresion PARDER sentencia SINO sentencia 
 	{ if($3.tipo != BOOLEANO) { printf("Error si linea %d: La expresion no es de tipo logico.\n", lineaActual);}}
@@ -170,11 +170,12 @@ expresion : PARIZQ expresion PARDER { $$.tipo = $2.tipo; $$.numDim = $2.numDim; 
 	| expresion OPAND expresion {tsOpAnd($1, $2, $3, &$$); }
 	| variable { declarVar = 0; }
 	| constante { $$.tipo = $1.tipo; $$.numDim = $1.numDim; $$.tamDim1 = $1.tamDim1; $$.tamDim2 = $1.tamDim2; }
-	| llamada_funcion  {$$.tipo = $1.tipo; $$.numDim = $1.numDim; $$.tamDim1 = $1.tamDim1; $$.tamDim2 = $1.tamDim2; }
+	| llamada_funcion  {$$.tipo = $1.tipo; $$.numDim = $1.numDim; $$.tamDim1 = $1.tamDim1; $$.tamDim2 = $1.tamDim2; funcionActual = -1;}
 	| error ;
 
-lista_expresiones : expresion COMA lista_expresiones 
-	| expresion ;
+lista_expresiones : expresion COMA lista_expresiones  { numParam++; tsCompruebaParametro($3, numParam); }
+	| expresion  { numParam = 1; tsCompruebaParametro($1, 1); }
+	|  ;
 
 lista_expresiones_cad : exp_cad COMA lista_expresiones_cad
 	| exp_cad ;
@@ -182,52 +183,68 @@ lista_expresiones_cad : exp_cad COMA lista_expresiones_cad
 exp_cad : expresion | CONSTCADENA ;
 
 constante : CONSTENTERA { $$.tipo = ENTERO; $$.numDim = 0; $$.tamDim1 = 0; $$.tamDim2 = 0; }
-	| constante_matriz {$$.tipo = $1.tipo; $$.numDim = $1.numDim; $$.tamDim1 = $1.tamDim1; $$.tamDim2 = $1.tamDim2; }
+	| constante_matriz { auxiliarAgregados = 1; $$.tipo = $1.tipo; $$.numDim = $1.numDim; $$.tamDim1 = $1.tamDim1; $$.tamDim2 = $1.tamDim2; }
 	| CONSTLOGICA { $$.tipo = BOOLEANO; $$.numDim = 0; $$.tamDim1 = 0; $$.tamDim2 = 0; }
 	| CONSTREAL { $$.tipo = REAL; $$.numDim = 0; $$.tamDim1 = 0; $$.tamDim2 = 0; }
 	| CONSTCARACTER { $$.tipo = CARACTER; $$.numDim = 0; $$.tamDim1 = 0; $$.tamDim2 = 0; } ;
 
-llamada_funcion : IDENT PARIZQ lista_expresiones PARDER 
-	| IDENT PARIZQ PARDER ;
+llamada_funcion : IDENT PARIZQ lista_expresiones PARDER { tsLlamadaFuncion($1, &$$); }
+	| IDENT PARIZQ PARDER { tsLlamadaFuncion($1, &$$); } ;
 
-constante_matriz : INICIOBLOQUE auxiliar_matriz FINBLOQUE ;
+constante_matriz : INICIOBLOQUE auxiliar_matriz FINBLOQUE { $$.tipo = $2.tipo; $$.numDim = $2.numDim; $$.tamDim1 = $2.tamDim1; $$.tamDim2 = $2.tamDim2;} ;
 
-auxiliar_matriz : agregado_entero
-	| agregado_real
-	| agregado_logico
-	| agregado_caracter ;
+auxiliar_matriz : agregado_entero { $$.tipo = ENTERO; }
+	| agregado_real { $$.tipo = REAL;}
+	| agregado_logico { $$.tipo = BOOLEANO; }
+	| agregado_caracter { $$.tipo = CARACTER; } ;
 
-agregado_entero : INICIOBLOQUE fila_agregado_entero FINBLOQUE ;
+agregado_entero : fila_agregado_entero { $$.numDim = $1.numDim; $$.tamDim1 = $1.tamDim1; $$.tamDim2 = $1.tamDim2;}  ;
 
-fila_agregado_entero : fila_agregado_entero PUNTOYCOMA lista_entera
-	| lista_entera ;
+fila_agregado_entero :fila_agregado_entero PUNTOYCOMA lista_entera { if ($$.tamDim2 != $3.tamDim1) {
+																		printf("Error, numero de filas no equivalente\n");
+																	} else {
+																		 $$.tamDim2 = $3.tamDim1; $$.tamDim1++; $$.numDim = 2;
+																			} }
+	| lista_entera { $$.tamDim2 = $1.tamDim1; $$.tamDim1 = 1; $$.numDim = 1;} ;
 
-lista_entera : lista_entera COMA CONSTENTERA
-	| CONSTENTERA ;
+lista_entera : lista_entera COMA CONSTENTERA { $$.tamDim1++; }
+	| CONSTENTERA { $$.tamDim1 = 1; auxiliarAgregados = 1; } ;
 
-agregado_real : INICIOBLOQUE fila_agregado_real FINBLOQUE ;
+agregado_real :  fila_agregado_real { $$.numDim = $1.numDim; $$.tamDim1 = $1.tamDim1; $$.tamDim2 = $1.tamDim2;} ;
 
-fila_agregado_real : fila_agregado_real PUNTOYCOMA lista_real
-	| lista_real ;
+fila_agregado_real : fila_agregado_real PUNTOYCOMA lista_real { if ($$.tamDim2 != $3.tamDim1) {
+																		printf("Error, numero de filas no equivalente\n");
+																	} else {
+																		 $$.tamDim2 = $3.tamDim1; $$.tamDim1++; $$.numDim = 2;
+																			} }
+	| lista_real { $$.tamDim2 = $1.tamDim1; $$.tamDim1 = 1; $$.numDim = 1;};
 				
-lista_real : lista_real COMA CONSTREAL
-	| CONSTREAL ;
+lista_real : lista_real COMA CONSTREAL { $$.tamDim1++; }
+	| CONSTREAL { $$.tamDim1 = 1; auxiliarAgregados = 1; } ;
 
-agregado_logico : INICIOBLOQUE fila_agregado_logico FINBLOQUE ;
+agregado_logico : fila_agregado_logico { $$.numDim = $1.numDim; $$.tamDim1 = $1.tamDim1; $$.tamDim2 = $1.tamDim2;} ;
 
-fila_agregado_logico : fila_agregado_logico PUNTOYCOMA lista_logica
-	| lista_logica ;
+fila_agregado_logico : fila_agregado_logico PUNTOYCOMA lista_logica { if ($$.tamDim2 != $3.tamDim1) {
+																		printf("Error, numero de filas no equivalente\n");
+																	} else {
+																		 $$.tamDim2 = $3.tamDim1; $$.tamDim1++; $$.numDim = 2;
+																			} }
+	| lista_logica { $$.tamDim2 = $1.tamDim1; $$.tamDim1 = 1; $$.numDim = 1;};
 
-lista_logica : lista_logica COMA CONSTLOGICA
-	| CONSTLOGICA ;
+lista_logica : lista_logica COMA CONSTLOGICA { $$.tamDim1++; }
+	| CONSTLOGICA { $$.tamDim1 = 1; auxiliarAgregados = 1; } ;
 
-agregado_caracter : INICIOBLOQUE fila_agregado_caracter FINBLOQUE;
+agregado_caracter : fila_agregado_caracter { $$.numDim = $1.numDim; $$.tamDim1 = $1.tamDim1; $$.tamDim2 = $1.tamDim2;} ;
 
-fila_agregado_caracter : fila_agregado_caracter PUNTOYCOMA lista_caracter
-	| lista_caracter ;
+fila_agregado_caracter : fila_agregado_caracter PUNTOYCOMA lista_caracter { if ($$.tamDim2 != $3.tamDim1) {
+																		printf("Error, numero de filas no equivalente\n");
+																	} else {
+																		 $$.tamDim2 = $3.tamDim1; $$.tamDim1++; $$.numDim = 2;
+																			} }
+	| lista_caracter { $$.tamDim2 = $1.tamDim1; $$.tamDim1 = 1; $$.numDim = 1;};
 
-lista_caracter : lista_caracter COMA CONSTCARACTER
-	| CONSTCARACTER ;
+lista_caracter : lista_caracter COMA CONSTCARACTER { $$.tamDim1++; }
+	| CONSTCARACTER { $$.tamDim1 = 1; auxiliarAgregados = 1; } ;
 
 %%
 

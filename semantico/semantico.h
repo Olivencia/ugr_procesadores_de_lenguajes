@@ -70,6 +70,7 @@ extern int pilaPun[MAX_ENTRADAS];
 extern int pilaCont[MAX_ENTRADAS];
 extern int topeFun;
 extern int topeCont;
+extern int auxiliarAgregados;
 
 /*
 ---A partir de aqui las que necesitemos
@@ -129,7 +130,7 @@ int tsBuscarIdent(atributos elem);
   * Si la encuentra devuelve el indice donde se encuentra la entrada
   * Si no la encuentra devuelve -1
 **/
-int tsBuscarEntrada(char* nombre);
+int tsBuscarFuncion(atributos elem);
 
 /**
  * Inserta un nuevo identificador en la tabla de simbolos
@@ -231,7 +232,7 @@ void tsLlamadaFuncion(atributos identificador, atributos* res);
 /**
  * Comprobacion semantica de cada parametro en una llamada a una funcion
  */
-void tsCompruebaParametro(atributos parametro);
+void tsCompruebaParametro(atributos parametro, int parametroAComprobar);
 
 
 

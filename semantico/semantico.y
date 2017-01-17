@@ -66,7 +66,7 @@ int yydebug=1;
 
 programa : PRINCIPAL bloque ;
 
-bloque : INICIOBLOQUE { tsInsertaMarca(); } declar_variables_locales declar_subprogs sentencias FINBLOQUE { tsVaciarEntradas(); } ;
+bloque : INICIOBLOQUE { tsInsertaMarca(); } declar_variables_locales declar_subprogs { declarVar = 2; } sentencias FINBLOQUE { tsVaciarEntradas(); } ;
 
 declar_subprogs : declar_subprogs declar_subprog | ;
 
@@ -84,29 +84,49 @@ lista_variables : variable COMA lista_variables
 	| variable error lista_variables
 	| variable ;
 
-variable : IDENT { 
-		if(declarVar == 1) { tsInsertaIdent($1); }
-		else { tsBuscarIdent($1); } 
-	} declar_matriz 
+variable : IDENT declar_matriz { 
+		if(declarVar == 1) { 
+			$1.numDim=$2.numDim; $1.tamDim1=$2.tamDim1; $1.tamDim2=$2.tamDim2; tsInsertaIdent($1); 
+		} else { 
+			if (declarVar == 2) { // Llamada desde expresion, en cuyo caso lo buscamos y despues vemos que esta pasando
+				tsGetIdent($1, &$$);
+				// Ahora comparamos los datos de la tabla de símbolos con lo que nos encontramos escrito
+				if($$.numDim == $2.numDim) { // Si coinciden los tamaños, significa que estamos accediendo a un elemento
+					$$.numDim = 0; $$.tamDim1 = 0; $$.tamDim2 = 0; // Por lo tanto hemos reducido la dimensionalidad a 0
+				} else { // Si no coinciden, el tamaño dimensional del elemento en la TS siempre debe ser mayor que el encontrado aquí
+					if($$.numDim > $2.numDim) { // Se está utilizando
+						if($2.numDim == 0) { // Debe ser 0, es lo único que nos sirve pq no vamos a acceder a interdimensionalidades
+							$$.numDim = $2.numDim; $$.tamDim1 = $2.tamDim1; $$.tamDim2 = $2.tamDim2; // Mantenemos la dimensionalidad
+						} else { // Error
+							printf("Error linea %d: Esta accediendose a una dimension intermedia: no permitido.\n",lineaActual); 
+						}
+					} else { // Error, no puede ocurrir, se está accediendo a más dimensiones de las declaradas
+						printf("Error linea %d: Esta accediendose a mas dimensiones de las declaradas.\n",lineaActual); }
+				}
+			} else {
+				tsGetIdent($1, &$$); 
+			}  
+		}
+	} 
 	| IDENT { 
-		if(declarVar == 1) { tsInsertaIdent($1); }
-		else { tsBuscarIdent($1); }  
+		if(declarVar == 1) { $1.numDim=0; $1.tamDim1 = 0; $1.tamDim2 = 0; tsInsertaIdent($1); }
+		else { tsGetIdent($1, &$$); }  
 	} ;
 
-declar_matriz : CORIZQ CONSTENTERA CORDER
-	| CORIZQ CONSTENTERA COMA CONSTENTERA CORDER ;
+declar_matriz : CORIZQ CONSTENTERA CORDER {$$.numDim = 1; $$.tamDim1=atoi($2.lexema); $$.tamDim2 = 0; }
+	| CORIZQ CONSTENTERA COMA CONSTENTERA CORDER {$$.numDim = 2; $$.tamDim1=atoi($2.lexema); $$.tamDim2=atoi($4.lexema); };
 
-cabecera_subprograma : tipo_retorno IDENT { declarPar = 1; tsInsertaSubprog($1); } PARIZQ lista_parametros PARDER  { tsActualizaNparam(); numParam = 0; declarPar = 0; };
+cabecera_subprograma : tipo_retorno IDENT { declarPar = 1; tsInsertaSubprog($2); } PARIZQ lista_parametros PARDER  { tsActualizaNparam($1); numParam = 0; declarPar = 0; };
 
-tipo_retorno : TIPOBASICO declar_matriz
-	| TIPOBASICO { imprimeTS(); };
+tipo_retorno : TIPOBASICO declar_matriz {$$.numDim=$2.numDim; $$.tamDim1=$2.tamDim1; $$.tamDim2=$2.tamDim2; }
+	| TIPOBASICO {$1.numDim=0;};
 
 lista_parametros : parametro COMA lista_parametros
 	| parametro error COMA lista_parametros
 	| parametro ;
 
-parametro : TIPOBASICO IDENT { numParam++; asignaTipoGlobal($1); tsInsertaParamFormal($2); } declar_matriz 
-	| TIPOBASICO IDENT { numParam++; asignaTipoGlobal($1); tsInsertaParamFormal($2); } ;
+parametro : TIPOBASICO IDENT declar_matriz {$2.numDim=$3.numDim; $2.tamDim1=$3.tamDim1; $2.tamDim2=$3.tamDim2; numParam++; asignaTipoGlobal($1); tsInsertaParamFormal($2); }
+	| TIPOBASICO IDENT { $2.numDim=0; numParam++; asignaTipoGlobal($1); tsInsertaParamFormal($2); } ;
 
 sentencias : sentencia sentencias | ;
 
@@ -119,12 +139,17 @@ sentencia : bloque
 	| devolver PUNTOYCOMA
 	| repetir_hasta PUNTOYCOMA ;
 
-asignacion : variable ASIGNACION expresion ;
+asignacion : variable ASIGNACION expresion 
+		{ if($1.tipo!=$3.tipo) { printf("Error asign linea %d: Los tipos %d %d de la parte izquierda y derecha no coinciden.\n",lineaActual, $1.tipo, $3.tipo); }
+		if(!igualTam($1,$3))  { printf("Error asign linea %d: La parte izquierda y la parte derecha deben tener el mismo tamanyo.\n",lineaActual); } };
 
-si : SI PARIZQ expresion PARDER sentencia SINO sentencia
-	| SI PARIZQ expresion PARDER sentencia ;
+si : SI PARIZQ expresion PARDER sentencia SINO sentencia 
+	{ if($3.tipo != BOOLEANO) { printf("Error si linea %d: La expresion no es de tipo logico.\n", lineaActual);}}
+	| SI PARIZQ expresion PARDER sentencia
+	{ if($3.tipo != BOOLEANO) { printf("Error si linea %d: La expresion no es de tipo logico.\n", lineaActual);}} ;
 
-mientras : MIENTRAS PARIZQ expresion PARDER sentencia ;
+mientras : MIENTRAS PARIZQ expresion PARDER sentencia
+	{ if($3.tipo != BOOLEANO) { printf("Error mientras linea %d: La expresion no es de tipo logico.\n", lineaActual);}} ;
 
 entrada : LEER lista_variables ;
 
@@ -132,22 +157,23 @@ salida : ESCRIBIR lista_expresiones_cad ;
 
 devolver : DEVOLVER expresion ;
 
-repetir_hasta : REPETIR sentencia HASTA PARIZQ expresion PARDER ;
+repetir_hasta : REPETIR sentencia HASTA PARIZQ expresion PARDER 
+		{ if($5.tipo != BOOLEANO) { printf("Error until linea %d: La expresion no es de tipo logico.\n", lineaActual);}} ;
 
-expresion : PARIZQ expresion PARDER
-	| OPUNARIO expresion
-	| SUMRES expresion %prec OPUNARIO
-	| expresion OPBINARIO expresion
-	| expresion OPOR expresion
-	| expresion OPRELACIONAL expresion
-	| expresion OPAND expresion
-	| expresion SUMRES expresion
-	| variable
-	| constante
-	| llamada_funcion
+expresion : PARIZQ expresion PARDER { $$.tipo = $2.tipo; $$.numDim = $2.numDim; $$.tamDim1 = $2.tamDim1; $$.tamDim2 = $2.tamDim2; }
+	| OPUNARIO expresion {tsOpNot($1, $2, &$$); }
+	| SUMRES expresion %prec OPUNARIO {tsOpSumResUnario($1, $2, &$$); }
+	| expresion OPBINARIO expresion {tsOpMulDiv($1, $2, $3, &$$); }
+	| expresion OPOR expresion {tsOpOrXor($1, $2, $3, &$$); }
+	| expresion OPRELACIONAL expresion {tsOpRel($1, $2, $3, &$$); }
+	| expresion SUMRES expresion { tsOpSumRes($1, $2, $3, &$$); }
+	| expresion OPAND expresion {tsOpAnd($1, $2, $3, &$$); }
+	| variable { declarVar = 0; }
+	| constante { $$.tipo = $1.tipo; $$.numDim = $1.numDim; $$.tamDim1 = $1.tamDim1; $$.tamDim2 = $1.tamDim2; }
+	| llamada_funcion  {$$.tipo = $1.tipo; $$.numDim = $1.numDim; $$.tamDim1 = $1.tamDim1; $$.tamDim2 = $1.tamDim2; }
 	| error ;
 
-lista_expresiones : expresion COMA lista_expresiones
+lista_expresiones : expresion COMA lista_expresiones 
 	| expresion ;
 
 lista_expresiones_cad : exp_cad COMA lista_expresiones_cad
@@ -155,11 +181,11 @@ lista_expresiones_cad : exp_cad COMA lista_expresiones_cad
 
 exp_cad : expresion | CONSTCADENA ;
 
-constante : CONSTENTERA
-	| constante_matriz
-	| CONSTLOGICA
-	| CONSTREAL
-	| CONSTCARACTER ;
+constante : CONSTENTERA { $$.tipo = ENTERO; $$.numDim = 0; $$.tamDim1 = 0; $$.tamDim2 = 0; }
+	| constante_matriz {$$.tipo = $1.tipo; $$.numDim = $1.numDim; $$.tamDim1 = $1.tamDim1; $$.tamDim2 = $1.tamDim2; }
+	| CONSTLOGICA { $$.tipo = BOOLEANO; $$.numDim = 0; $$.tamDim1 = 0; $$.tamDim2 = 0; }
+	| CONSTREAL { $$.tipo = REAL; $$.numDim = 0; $$.tamDim1 = 0; $$.tamDim2 = 0; }
+	| CONSTCARACTER { $$.tipo = CARACTER; $$.numDim = 0; $$.tamDim1 = 0; $$.tamDim2 = 0; } ;
 
 llamada_funcion : IDENT PARIZQ lista_expresiones PARDER 
 	| IDENT PARIZQ PARDER ;

@@ -174,8 +174,7 @@ expresion : PARIZQ expresion PARDER { $$.tipo = $2.tipo; $$.numDim = $2.numDim; 
 	| error ;
 
 lista_expresiones : expresion COMA lista_expresiones  { numParam++; tsCompruebaParametro($3, numParam); }
-	| expresion  { numParam = 1; tsCompruebaParametro($1, 1); }
-	|  ;
+	| expresion  { numParam = 1; tsCompruebaParametro($1, 1); };
 
 lista_expresiones_cad : exp_cad COMA lista_expresiones_cad
 	| exp_cad ;

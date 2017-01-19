@@ -66,7 +66,7 @@ int yydebug=1;
 
 programa : PRINCIPAL bloque ;
 
-bloque : INICIOBLOQUE { tsInsertaMarca(); } declar_variables_locales declar_subprogs { declarVar = 2; } sentencias FINBLOQUE { tsVaciarEntradas(); } ;
+bloque : INICIOBLOQUE { tsInsertaMarca(); } declar_variables_locales declar_subprogs sentencias FINBLOQUE { tsVaciarEntradas(); } ;
 
 declar_subprogs : declar_subprogs declar_subprog | ;
 
@@ -128,7 +128,7 @@ lista_parametros : parametro COMA lista_parametros
 parametro : TIPOBASICO IDENT declar_matriz {$2.numDim=$3.numDim; $2.tamDim1=$3.tamDim1; $2.tamDim2=$3.tamDim2; numParam++; asignaTipoGlobal($1); tsInsertaParamFormal($2); }
 	| TIPOBASICO IDENT { $2.numDim=0; numParam++; asignaTipoGlobal($1); tsInsertaParamFormal($2); } ;
 
-sentencias : sentencia sentencias | ;
+sentencias : { declarVar = 2; } sentencia sentencias | ;
 
 sentencia : bloque
 	| asignacion PUNTOYCOMA
@@ -141,7 +141,7 @@ sentencia : bloque
 
 asignacion : variable ASIGNACION expresion 
 		{ if($1.tipo!=$3.tipo) {  printf("Error asign linea %d: Los tipos de la parte izquierda %d y derecha %d no coinciden.\n",lineaActual, $1.tipo, $3.tipo); }
-		if(!igualTam($1,$3))  { imprimeAtributo($1,"izq"); imprimeAtributo($3, "der");printf("Error asign linea %d: La parte izquierda y la parte derecha deben tener el mismo tamanyo.\n",lineaActual); } };
+		if(!igualTam($1,$3))  { printf("Error asign linea %d: La parte izquierda y la parte derecha deben tener el mismo tamanyo.\n",lineaActual); } };
 
 si : SI PARIZQ expresion PARDER sentencia SINO sentencia 
 	{ if($3.tipo != BOOLEANO) { printf("Error si linea %d: La expresion no es de tipo logico.\n", lineaActual);}}
@@ -155,7 +155,7 @@ entrada : LEER lista_variables ;
 
 salida : ESCRIBIR lista_expresiones_cad ;
 
-devolver : DEVOLVER expresion ;
+devolver : DEVOLVER expresion { tsCompruebaRetorno($2,&$$);} ;
 
 repetir_hasta : REPETIR sentencia HASTA PARIZQ expresion PARDER 
 		{ if($5.tipo != BOOLEANO) { printf("Error until linea %d: La expresion no es de tipo logico.\n", lineaActual);}} ;
@@ -168,13 +168,13 @@ expresion : PARIZQ expresion PARDER { $$.tipo = $2.tipo; $$.numDim = $2.numDim; 
 	| expresion OPRELACIONAL expresion {tsOpRel($1, $2, $3, &$$); }
 	| expresion SUMRES expresion { tsOpSumRes($1, $2, $3, &$$); }
 	| expresion OPAND expresion {tsOpAnd($1, $2, $3, &$$); }
-	| variable { declarVar = 0; }
+	| variable { declarVar = 0;}
 	| constante { $$.tipo = $1.tipo; $$.numDim = $1.numDim; $$.tamDim1 = $1.tamDim1; $$.tamDim2 = $1.tamDim2; }
 	| llamada_funcion  {$$.tipo = $1.tipo; $$.numDim = $1.numDim; $$.tamDim1 = $1.tamDim1; $$.tamDim2 = $1.tamDim2; funcionActual = -1;}
 	| error ;
 
-lista_expresiones : expresion COMA lista_expresiones  { numParam++; tsCompruebaParametro($3, numParam); }
-	| expresion  { numParam = 1; tsCompruebaParametro($1, 1); };
+lista_expresiones : expresion COMA lista_expresiones  { numParam++; tsCompruebaParametro($1, numParam); }
+	| expresion  { numParam = 1; tsCompruebaParametro($1, numParam); } ;
 
 lista_expresiones_cad : exp_cad COMA lista_expresiones_cad
 	| exp_cad ;

@@ -9,7 +9,7 @@ principal
 	{
 		var
 			entero c, y[2,2];
-			real wete[5,7];
+			real wete[6,7];
 		finvar
 		
 		y = {5,4;5,3};

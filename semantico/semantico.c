@@ -9,20 +9,7 @@ int subProg = 0;
 tDato tipoGlobal = DESC;
 int numParam = 0;
 int funcionActual = -1;
-int pilaFun[MAX_ENTRADAS];
-int topeFun = -1;
-int pilaCont[MAX_ENTRADAS];
-int topeCont = -1;
 int auxiliarAgregados = 0;
-/*
-int topeSubprog = -1;
-int contadorParam = 0;
-
-int hayError = 0;
-*/
-
-
-
 
 /**
  * Indica si el atributo es un array o no
@@ -289,12 +276,27 @@ void tsActualizaNparam(atributos elem) {
 
 
 //------------  Funciones para las comprobaciones semanticas ------------------------
+
 /**
  * Busca la entrada de tipo Funcion mas proxima desde el tope de la tabla de simbolos
  * y devuelve el indice
  */
-int tsGetFuncion() {
+int tsGetFuncionProxima() {
+	int i = TOPE - 1;
+	int encontrado = 0;
+	while (i > 0 && !encontrado) {
+		if (TS[i].entrada == FUNCION) {
+			encontrado = 1;
+		} else {
+			i--;
+		}
+	}
 	
+	if(!encontrado) {
+		return -1;
+	} else {
+		return i;
+	}
 }
 
 /**
@@ -302,7 +304,36 @@ int tsGetFuncion() {
  * Comprueba que el tipo de expresion es el mismo que el de la funcion
  * donde se encuentra
  */
-void tsCompruebaRetorno(atributos expresion, atributos* retorno);
+void tsCompruebaRetorno(atributos expresion, atributos* retorno) {
+
+	int indice = tsGetFuncionProxima();
+	
+	if (indice > -1) {
+		if (expresion.tipo != TS[indice].tipoDato) {
+			printf("Error linea %d: La expresion de la sentencia retorno no es del tipo que devuelve la funcion.\n",lineaActual);
+			return;
+		}
+		
+		atributos tmp;
+		tmp.numDim = TS[indice].numDim;
+		tmp.tamDim1 = TS[indice].tamDim1;
+		tmp.tamDim2 = TS[indice].tamDim2;
+		
+		if (!igualTam(expresion,tmp)) {
+			printf("Error linea %d: La expresion de la sentencia retorno no es del mismo tamanyo que la que devuelve la funcion.\n", lineaActual);
+			return;
+		}
+		
+		retorno->tipo = expresion.tipo;
+		retorno->numDim = expresion.numDim;
+		retorno->tamDim1 = expresion.tamDim1;
+		retorno->tamDim2 = expresion.tamDim2;
+	}
+	else {
+		printf("Error linea %d: La sentencia retorno no se encuentra declarada dentro de ninguna funcion.\n", lineaActual);
+		return;
+	}
+}
 
 /**
  * Busca el identificador en la tabla de simbolos y lo rellena en el atributo de salida
@@ -595,15 +626,18 @@ void tsLlamadaFuncion(atributos identificador, atributos* res) {
  */
 void tsCompruebaParametro(atributos parametro, int parametroAComprobar) {
 
-	int posicionParametro = funcionActual + parametroAComprobar;
+	int posicionParametro = (funcionActual + TS[funcionActual].nParam) - (parametroAComprobar - 1);
 	
+	int errorRealmente = TS[funcionActual].nParam - parametroAComprobar + 1;
+	//printf("voy a comprobar el parametro %d\n", parametroAComprobar);
+	//imprimeAtributo(parametro, "a Comprobar");
+	//imprimeEntrada(posicionParametro);
 	if (parametro.tipo != TS[posicionParametro].tipoDato) {
-		printf("El tipo del parametro esperado no es el correcto\n");
+		printf("Error linea %d. El tipo del parametro esperado en el parametro %d no es el correcto\n", lineaActual, errorRealmente);
 		return;
 	}
-	
 	if (parametro.numDim != TS[posicionParametro].numDim || parametro.tamDim1 != TS[posicionParametro].tamDim1  || parametro.tamDim2 != TS[posicionParametro].tamDim2) {
-		printf("El tamanyo esperado no es el correcto\n");
+		printf("Error linea %d. El tamanyo esperado en el parametro %d no es el correcto\n", lineaActual, errorRealmente);
 		return;
 	}
 	

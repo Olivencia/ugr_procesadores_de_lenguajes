@@ -65,25 +65,7 @@ extern tDato tipoGlobal;
 extern int numParam;
 // Almacena el indice de la TS de la funcion que se esta analizando
 extern int funcionActual;
-// Pila que almacena funciones
-extern int pilaPun[MAX_ENTRADAS];
-extern int pilaCont[MAX_ENTRADAS];
-extern int topeFun;
-extern int topeCont;
 extern int auxiliarAgregados;
-
-/*
----A partir de aqui las que necesitemos
-// Sirve para indicar en que indice se encuentra la entrada de subprograma para cuando se 
-// inserten las entradas de los parametros
-extern int topeSubprog;
-// Contador que sirve para llevar la cuenta de que parametro estamos analizando
-extern int contadorParam;
-
-
-*/
-
-
 
 
 /**
@@ -165,7 +147,7 @@ void tsActualizaNparam(atributos elem);
  * Busca la entrada de tipo Funcion mas proxima desde el tope de la tabla de simbolos
  * y devuelve el indice
  */
-int tsBuscarFuncionProxima();
+int tsGetFuncionProxima();
 
 /**
  * Comprobacion semantica de la sentencia de retorno.

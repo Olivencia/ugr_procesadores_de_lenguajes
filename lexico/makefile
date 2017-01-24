@@ -12,5 +12,7 @@ lex.yy.c: lexico.l
 limpia: 
 	rm -f lexico lex.yy.o lex.yy.c
 
-todo: make limpia
+todo: 
+	reset
+	make limpia
 	make lexico

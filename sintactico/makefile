@@ -18,5 +18,7 @@ lex.yy.c: lexico.l
 limpia: 
 	rm -f sintactico main.o y.tab.o y.tab.c lex.yy.c
 
-todo: make limpia
+todo: 
+	reset
+	make limpia
 	make sintactico

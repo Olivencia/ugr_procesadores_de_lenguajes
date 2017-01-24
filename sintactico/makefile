@@ -15,7 +15,8 @@ y.tab.c: sintactico.y lex.yy.c
 lex.yy.c: lexico.l
 	lex lexico.l
 
-limpia: rm -f sintactico main.o y.tab.o y.tab.c lex.yy.c
+limpia: 
+	rm -f sintactico main.o y.tab.o y.tab.c lex.yy.c
 
 todo: make limpia
 	make sintactico

@@ -1,11 +1,11 @@
 principal()
 {
 	var
-		ent··ero ve ;
+		entero ve ;
 		real vf ;
 		caracter vc ;
 		logico  vl ;
-		matri··z entero pe, pe2 ;
+		matriz entero pe, pe2 ;
 		matriz real pf, pf2 ;
 		matriz caracter pc, pc2 ;
 		matriz logico  pl ;

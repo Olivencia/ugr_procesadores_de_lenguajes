@@ -1,4 +1,6 @@
 *.o
 lex.yy.c
 y.tab.c
-semantico	
+lexico/lexico
+sintactico/sintactico
+semantico/semantico	
